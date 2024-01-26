@@ -1,6 +1,11 @@
+from datetime import datetime
+
 import flet as ft
 from data import DATA
 from other_func import card, checking_size, checking_quantity
+from calculations.plastic_calc import main_calc
+from plastic.result_gui import result_content
+from list_orders import ORDERS
 # from icecream import ic
 
 
@@ -276,22 +281,87 @@ class PlasticGUI(ft.UserControl):
                 [self.width_plastic, self.height_plastic, self.quantity, ft.Divider(), content_files]
             )
         )
-
+        
         # todo не доделана
         self.button_send = ft.ElevatedButton(
-            # 'Рассчитать',
-            'Расчет не сделан',
+            'Рассчитать',
+            # 'Расчет не сделан',
             style=ft.ButtonStyle(
-                # padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK
-                padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.RED_500, color=ft.colors.WHITE
+                padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK
+                # padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.RED_500, color=ft.colors.WHITE
             ),
-            # on_click=self.checking_entered_values
+            on_click=self.checking_entered_values
         )
         column_controls.append(self.button_send)
         
         self.visible_material_fields()
         self.visible_processing_fields()
         return column_controls
+    
+    def create_data(self):
+        attributes_to_check = {
+            self.color_material: 'color_material',
+            self.lamination: 'lamination',
+            self.sampling_method: 'sampling_method',
+            self.sampling_complexity: 'sampling_complexity',
+            self.mounting_plastic: 'mounting_plastic',
+            self.print_quality: 'print_quality'
+        }
+        add_data = {}
+        for attribute, key in attributes_to_check.items():
+            if not attribute.visible:
+                add_data[key] = None
+            else:
+                add_data[key] = attribute.value
+            
+        data = {
+            'material': {
+                'name': self.material.value,
+                'print_quality': add_data['print_quality'],
+                'color_material': add_data['color_material'],
+            },
+            'processing': {
+                'lamination': add_data['lamination'],
+                'processing': self.processing.value,
+                'sampling_method': add_data['sampling_method'],
+                'sampling_complexity': add_data['sampling_complexity'],
+                'mounting_plastic': add_data['mounting_plastic']
+            },
+            'height': self.height_plastic.value,
+            'width': self.width_plastic.value,
+            'quantity': self.quantity.value
+        }
+        return data
+
+    def checking_entered_values(self, _event):
+        checked_var = True
+        if self.color_material.visible:
+            if not self.color_material.value:
+                if not self.color_material.error_text:
+                    self.color_material.error_text = 'Введите цвет композита'
+                checked_var = False
+        if self.height_plastic.error_text or self.width_plastic.error_text or self.quantity.error_text:
+            checked_var = False
+        else:
+            for elem in [self.height_plastic, self.width_plastic, self.quantity]:
+                if not elem.value:
+                    elem.error_text = 'Не может быть пустым'
+                    checked_var = False
+    
+        if not checked_var:
+            self.page.banner.open = True
+            self.page.update()
+        else:
+            data = main_calc(self.create_data())
+            self.main_price.text = f"{data['main_price']}\xa0₽"
+            self.main_sale_price.text = f"{data['main_sale_price']}\xa0₽"
+            self.coefficient.text = data['coefficient']
+            self.page.dialog.content = result_content(data)
+            ORDERS[f'Плёнка - {datetime.now().strftime("%d.%m.%Y (%H:%M:%S)")}'] = data
+            data['result_content'] = 'plastic'
+            self.page.dialog.open = True
+            self.page.update()
+        self.update()
 
     def build(self):
         self.create_fields()

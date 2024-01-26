@@ -11,6 +11,7 @@ def square_calc(length, width):
 
 def find_coefficient(value, coefficient_dict):
     for coefficient, (lower_bound, upper_bound) in coefficient_dict.items():
+        coefficient = float(coefficient)
         if lower_bound <= value < upper_bound if upper_bound is not None else True:
             return coefficient
     return None

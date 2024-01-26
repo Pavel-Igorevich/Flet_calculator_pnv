@@ -1,6 +1,21 @@
 import flet as ft
 
 
+def process_and_replace_keys(dictionary):
+    keys_to_remove = [key for key in dictionary.keys() if isinstance(key, str) and key.startswith('_')]
+    
+    for key in keys_to_remove:
+        del dictionary[key]
+    
+    for key, value in dictionary.items():
+        if isinstance(value, dict):
+            process_and_replace_keys(value)
+    
+    # Замена ключей 'null' на None
+    if 'null' in dictionary:
+        dictionary[None] = dictionary.pop('null')
+
+
 def checking_size(event):
     if len(event.control.value) == 0:
         event.control.error_text = 'Не может быть пустым'

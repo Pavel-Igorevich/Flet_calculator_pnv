@@ -1,5 +1,5 @@
 from data import DATA
-# from icecream import ic
+from icecream import ic
 from calculations.default_calc_func import square_calc, find_coefficient, amount_str
 
 DATA = DATA['Листовые материалы']
@@ -100,11 +100,11 @@ def main_calc(data):
     else:
         coefficient = 1
     main_price = round(
-        (price_material + price_processing + price_backlighting + price_exploitation)
+        (price_material + price_processing + price_backlighting) * price_exploitation
         * coefficient_processing * square * quantity
     )
     main_sale_price = round(
-        (sale_price_material + sale_price_processing + sale_price_backlighting + sale_price_exploitation)
+        (sale_price_material + sale_price_processing + sale_price_backlighting) * sale_price_exploitation
         * coefficient_processing * square * quantity * coefficient
     )
     data['material']['price'] = amount_str(price_material)

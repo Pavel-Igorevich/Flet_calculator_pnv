@@ -47,8 +47,8 @@ def processing_calc(welding_step, processing, height, width, sides):
 
 
 def main_calc(data):
-    height = int(data['height'])
-    width = int(data['width'])
+    height = float(data['height'])
+    width = float(data['width'])
     quantity = int(data['quantity'])
     perimeter = perimeter_calc(height, width)
     square = square_calc(height, width)
