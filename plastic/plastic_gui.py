@@ -6,7 +6,7 @@ from other_func import card, checking_size, checking_quantity
 from calculations.plastic_calc import main_calc
 from plastic.result_gui import result_content
 from list_orders import ORDERS
-# from icecream import ic
+from icecream import ic
 
 
 class PlasticGUI(ft.UserControl):
@@ -93,7 +93,6 @@ class PlasticGUI(ft.UserControl):
             options=[],
             value=None,
             alignment=ft.alignment.center,
-            on_change=self.material_func,
             visible=False,
             bgcolor=ft.colors.WHITE,
         )
@@ -299,6 +298,7 @@ class PlasticGUI(ft.UserControl):
         return column_controls
     
     def create_data(self):
+        ic(self.print_quality.value)
         attributes_to_check = {
             self.color_material: 'color_material',
             self.lamination: 'lamination',
@@ -313,7 +313,6 @@ class PlasticGUI(ft.UserControl):
                 add_data[key] = None
             else:
                 add_data[key] = attribute.value
-            
         data = {
             'material': {
                 'name': self.material.value,
@@ -331,7 +330,8 @@ class PlasticGUI(ft.UserControl):
             'width': self.width_plastic.value,
             'quantity': self.quantity.value
         }
-        return data
+        
+        return ic(data)
 
     def checking_entered_values(self, _event):
         checked_var = True
