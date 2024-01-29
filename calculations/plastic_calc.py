@@ -1,6 +1,5 @@
 from data import DATA
 from calculations.default_calc_func import perimeter_calc, square_calc, find_coefficient, amount_str
-from icecream import ic
 DATA_PLASTIC = DATA['Плёнка']
 
 
