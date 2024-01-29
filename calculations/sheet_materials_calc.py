@@ -1,5 +1,4 @@
 from data import DATA
-from icecream import ic
 from calculations.default_calc_func import square_calc, find_coefficient, amount_str
 
 DATA = DATA['Листовые материалы']
