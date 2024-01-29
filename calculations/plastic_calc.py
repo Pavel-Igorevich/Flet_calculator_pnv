@@ -1,6 +1,6 @@
 from data import DATA
 from calculations.default_calc_func import perimeter_calc, square_calc, find_coefficient, amount_str
-
+from icecream import ic
 DATA_PLASTIC = DATA['Плёнка']
 
 
@@ -18,6 +18,7 @@ def material_calc(material):
     else:
         oracal_data = DATA_PLASTIC['Материал'][name]
         price_material, sale_price_material = oracal_data['Себестоимость'], oracal_data['Продажа']
+    
     return price_material, sale_price_material
 
 
@@ -72,11 +73,11 @@ def main_calc(data):
     
     main_price = round(
         ((lamination_price + price_material) * square)
-        + (price_processing * multiplier_process) * quantity * coefficient
+        + (price_processing * multiplier_process) * quantity
     )
     main_sale_price = round(
-        ((lamination_sale_price + sale_price_material) * square)
-        + (sale_price_processing * multiplier_process) * quantity * coefficient
+        (((lamination_sale_price + sale_price_material) * square)
+         + (sale_price_processing * multiplier_process) * quantity) * coefficient
     )
     data['material']['price'] = amount_str(price_material)
     data['material']['sale_price'] = amount_str(sale_price_material)
