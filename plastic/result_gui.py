@@ -154,7 +154,7 @@ def content_lamination(data):
                         text_align=ft.TextAlign.CENTER,
                         spans=[
                             ft.TextSpan(f'Себестоимость\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                            ft.TextSpan(f"{data['processing']['price']}\xa0₽",
+                            ft.TextSpan(f"{data['processing']['lamination_price']}\xa0₽",
                                         ft.TextStyle(weight=ft.FontWeight.W_700)),
                         ],
                         col={'xs': 12, 'sm': 6}
@@ -163,7 +163,7 @@ def content_lamination(data):
                         text_align=ft.TextAlign.CENTER,
                         spans=[
                             ft.TextSpan(f'Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                            ft.TextSpan(f"{data['processing']['sale_price']}\xa0₽",
+                            ft.TextSpan(f"{data['processing']['lamination_sale_price']}\xa0₽",
                                         ft.TextStyle(weight=ft.FontWeight.W_700)),
                         ],
                         col={'xs': 12, 'sm': 6}

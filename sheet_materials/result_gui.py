@@ -1,5 +1,6 @@
 import flet as ft
 from other_func import card_result
+from plastic import result_gui as plastic_result
 
 
 def content_material(data):
@@ -68,7 +69,8 @@ def content_material(data):
                         text_align=ft.TextAlign.CENTER,
                         spans=[
                             ft.TextSpan('Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                            ft.TextSpan(f"{data['material']['sale_price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                            ft.TextSpan(f"{data['material']['sale_price']}\xa0₽",
+                                        ft.TextStyle(weight=ft.FontWeight.W_700)),
                         ],
                         col={'xs': 12, 'sm': 6}
                     ),
@@ -130,13 +132,6 @@ def content_processing(data):
 
 def content_sizes(data):
     return [
-        ft.Text(
-            text_align=ft.TextAlign.CENTER,
-            spans=[
-                ft.TextSpan('Место эксплуатации: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                ft.TextSpan(data['exploitation'], ft.TextStyle(weight=ft.FontWeight.W_700)),
-            ],
-        ),
         ft.Text(
             text_align=ft.TextAlign.CENTER,
             spans=[
@@ -299,14 +294,98 @@ def content_backlighting(data):
 #         ])
 #     return consumption
 
+def card_general_prices(data):
+    return [
+        ft.Text(
+            'Листовые материалы',
+            text_align=ft.TextAlign.CENTER,
+            style=ft.TextStyle(weight=ft.FontWeight.W_900)
+        ),
+        ft.ResponsiveRow(
+            [
+                ft.Text(
+                    text_align=ft.TextAlign.CENTER,
+                    spans=[
+                        ft.TextSpan('Общая себестоимость: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                        ft.TextSpan(f"{data['sheet_main_price']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                    ],
+                    col={'xs': 12, 'sm': 4}
+                ),
+                ft.Text(
+                    text_align=ft.TextAlign.CENTER,
+                    spans=[
+                        ft.TextSpan('Коэффициент: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                        ft.TextSpan(f"{data['coefficient']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                    ],
+                    col={'xs': 12, 'sm': 4}
+                ),
+                ft.Text(
+                    text_align=ft.TextAlign.CENTER,
+                    spans=[
+                        ft.TextSpan('Общая стоимость: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                        ft.TextSpan(f"{data['sheet_main_sale_price']}\xa0м²", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                    ],
+                    col={'xs': 12, 'sm': 4}
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        ft.Divider(),
+        ft.Text(
+            'Плёнка',
+            text_align=ft.TextAlign.CENTER,
+            style=ft.TextStyle(weight=ft.FontWeight.W_900)
+        ),
+        ft.ResponsiveRow(
+            [
+                ft.Text(
+                    text_align=ft.TextAlign.CENTER,
+                    spans=[
+                        ft.TextSpan('Общая себестоимость: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                        ft.TextSpan(f"{data['plastic']['main_price']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                    ],
+                    col={'xs': 12, 'sm': 4}
+                ),
+                ft.Text(
+                    text_align=ft.TextAlign.CENTER,
+                    spans=[
+                        ft.TextSpan('Коэффициент: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                        ft.TextSpan(
+                            f"{data['plastic']['coefficient']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)
+                        ),
+                    ],
+                    col={'xs': 12, 'sm': 4}
+                ),
+                ft.Text(
+                    text_align=ft.TextAlign.CENTER,
+                    spans=[
+                        ft.TextSpan('Общая стоимость: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                        ft.TextSpan(
+                            f"{data['plastic']['main_sale_price']}\xa0м²", ft.TextStyle(weight=ft.FontWeight.W_700)
+                        ),
+                    ],
+                    col={'xs': 12, 'sm': 4}
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+        )
+    ]
+
 
 def result_content(data):
     list_content = []
     list_content.extend(card_result(content_material(data), 'Материал'))
     list_content.extend(card_result(content_processing(data), 'Обработка'))
     list_content.extend(card_result(content_backlighting(data), 'Световое исполнение'))
+    if data.get('plastic'):
+        list_content.extend(card_result(plastic_result.content_material(data['plastic']), 'Материал плёнки'))
+        list_content.extend(card_result(plastic_result.content_processing(data['plastic']), 'Обработка плёнки'))
+        content_lamin = plastic_result.content_lamination(data['plastic'])
+        if content_lamin:
+            list_content.extend(card_result(content_lamin, 'Ламинация плёнки'))
     list_content.extend(card_result(content_sizes(data), 'Общие параметры'))
-    
+    if data.get('plastic'):
+        list_content.extend(card_result(card_general_prices(data), 'Сводка стоимостей'))
     return ft.Container(
         content=ft.Column(
             controls=list_content,

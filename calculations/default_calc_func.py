@@ -17,7 +17,7 @@ def find_coefficient(value, coefficient_dict):
     return None
 
 
-def amount_str(value):
+def amount_str(value: object) -> object:
     return "{:,.2f}".format(value).replace(',', '\xa0')
 
 

@@ -92,5 +92,7 @@ def main_calc(data):
     data['coefficient'] = coefficient
     data['main_price'] = amount_str(main_price)
     data['main_sale_price'] = amount_str(main_sale_price)
+    data['float_main_price'] = main_price
+    data['float_main_sale_price'] = main_sale_price
 
     return data

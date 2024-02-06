@@ -86,24 +86,21 @@ def main_calc(data):
     height = float(data['height'])
     width = float(data['width'])
     quantity = int(data['quantity'])
-    exploitation = data['exploitation']
     square = square_calc(height, width)
     price_material, sale_price_material = material_calc(data)
     price_processing, sale_price_processing, coefficient_processing = processing_calc(data)
     price_backlighting, sale_price_backlighting = backlighting_calc(data)
-    price_exploitation = DATA['Место эксплуатации'][exploitation]['Себестоимость']
-    sale_price_exploitation = DATA['Место эксплуатации'][exploitation]['Продажа']
 
     if DATA['Коэффициент']:
         coefficient = find_coefficient(square, DATA['Коэффициент'])
     else:
         coefficient = 1
     main_price = round(
-        (price_material + price_processing + price_backlighting) * price_exploitation
+        (price_material + price_processing + price_backlighting)
         * coefficient_processing * square * quantity
     )
     main_sale_price = round(
-        (sale_price_material + sale_price_processing + sale_price_backlighting) * sale_price_exploitation
+        (sale_price_material + sale_price_processing + sale_price_backlighting)
         * coefficient_processing * square * quantity * coefficient
     )
     data['material']['price'] = amount_str(price_material)
@@ -116,8 +113,14 @@ def main_calc(data):
     data['width'] = width
     data['size'] = square
     data['coefficient'] = coefficient
-    data['main_price'] = amount_str(main_price)
-    data['main_sale_price'] = amount_str(main_sale_price)
+    data['sheet_main_price'] = amount_str(main_price)
+    data['sheet_main_sale_price'] = amount_str(main_sale_price)
+    if data.get('plastic'):
+        data['main_price'] = amount_str(main_price + data['plastic']['float_main_price'])
+        data['main_sale_price'] = amount_str(main_sale_price + data['plastic']['float_main_sale_price'])
+    else:
+        data['main_price'] = data['sheet_main_price']
+        data['main_sale_price'] = data['sheet_main_sale_price']
 
     return data
     

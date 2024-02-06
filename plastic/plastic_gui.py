@@ -6,36 +6,24 @@ from other_func import card, checking_size, checking_quantity
 from calculations.plastic_calc import main_calc
 from plastic.result_gui import result_content
 from list_orders import ORDERS
-from icecream import ic
 
 
-class PlasticGUI(ft.UserControl):
-    
-    def __init__(self, page, main_price, main_sale_price, coefficient):
-        super().__init__()
-        self.page = page
-        self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
+class PlasticElements:
+    def __init__(self):
         self.material = None
         self.color_material = None
         self.print_quality = None
-        self.height_plastic = None
-        self.width_plastic = None
-        self.quantity = None
-        self.button_send = None
-
-        self.load_file_btn = None
-        self.load_file_text = None
-        self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
-        self.page.overlay.append(self.pick_files_dialog)
-        self.page.update()
-        self.upload_files = []
-        
         self.processing = None
         self.lamination = None
         self.lamination_divider = None
         self.sampling_method = None
         self.sampling_complexity = None
         self.mounting_plastic = None
+        self.card_material = None
+        self.card_process = None
+        self.name = None
+        self.divider_down = None
+        self.divider_top = None
         
     def visible_material_fields(self):
         fields_data = DATA['Плёнка']['Материал'][self.material.value]
@@ -57,27 +45,9 @@ class PlasticGUI(ft.UserControl):
             self.lamination.visible = True
             self.lamination_divider.visible = True
         
-    def material_func(self, _event):
-        self.visible_material_fields()
-        self.update()
-        
-    def load_file(self, e: ft.FilePickerResultEvent):
-        if not e.files:
-            self.load_file_text.value = ''
-            self.upload_files = []
-        else:
-            self.load_file_text.value = ", ".join(map(lambda f: f.name, e.files))
-            # todo реализация только для пк, потом переделать
-            for num, file in enumerate(e.files):
-                self.upload_files.append(
-                    [f"Макет_Пленки_{num}.{file.name.split('.')[-1]}", file.path]
-                )
-        self.update()
-    
-    def material_card(self):
+    def create_elements_material(self):
         material_choices = list(DATA['Плёнка']['Материал'].keys())
         default_material = material_choices[0]
-    
         self.material = ft.Dropdown(
             label="Материал плёнки",
             options=[
@@ -85,7 +55,7 @@ class PlasticGUI(ft.UserControl):
             ],
             value=default_material,
             alignment=ft.alignment.center,
-            on_change=self.material_func,
+            # on_change=self.material_func,
             bgcolor=ft.colors.WHITE,
         )
         self.print_quality = ft.Dropdown(
@@ -100,52 +70,12 @@ class PlasticGUI(ft.UserControl):
             label="Цвет плёнки",
             visible=False
         )
-        return card('Материал', [self.material, self.print_quality, self.color_material])
-    
-    def visible_processing_fields(self):
-        fields_data = DATA['Плёнка']['Обработка']['Вид обработки'][self.processing.value]
-        self.sampling_method.visible = False
-        self.sampling_complexity.visible = False
-        self.mounting_plastic.visible = False
-        if 'Вид выборки' in fields_data:
-            data_sampling = fields_data['Вид выборки']
-            options_sampling = list(data_sampling.keys())
-            self.sampling_method.options = [
-                ft.dropdown.Option(choice) for choice in options_sampling
-            ]
-            self.sampling_method.value = options_sampling[0]
-            self.sampling_method.visible = True
-            data_complexity = data_sampling[options_sampling[0]]
-            if "Сложность выборки" in data_complexity:
-                options_complexity = list(data_complexity["Сложность выборки"].keys())
-                self.sampling_complexity.options = [
-                    ft.dropdown.Option(choice) for choice in options_complexity
-                ]
-                self.sampling_complexity.value = options_complexity[0]
-                self.sampling_complexity.visible = True
-        if 'Монтажная пленка' in fields_data:
-            self.mounting_plastic.visible = True
-    
-    def processing_func(self, _event):
-        self.visible_processing_fields()
-        self.update()
-    
-    def sampling_func(self, event):
-        self.sampling_complexity.visible = False
-        sampling = DATA['Плёнка']['Обработка']['Вид обработки'][self.processing.value].get('Вид выборки')
-        if sampling:
-            if "Сложность выборки" in sampling[event.control.value]:
-                options_complexity = list(sampling[event.control.value]["Сложность выборки"].keys())
-                self.sampling_complexity.options = [
-                    ft.dropdown.Option(choice) for choice in options_complexity
-                ]
-                self.sampling_complexity.value = options_complexity[0]
-                self.sampling_complexity.visible = True
-        self.update()
-    
-    def processing_card(self):
-        lamination_choices = list(DATA['Плёнка']['Обработка']['Ламинация'].keys())
+        self.card_material = card('Материал', [self.material, self.print_quality, self.color_material])
+        return self.card_material
         
+    def create_elements_processing(self):
+        lamination_choices = list(DATA['Плёнка']['Обработка']['Ламинация'].keys())
+    
         self.lamination = ft.Dropdown(
             label="Ламинация",
             options=[
@@ -153,11 +83,11 @@ class PlasticGUI(ft.UserControl):
             ],
             value=lamination_choices[0],
             alignment=ft.alignment.center,
-            on_change=self.processing_func,
+            # on_change=self.processing_func,
             bgcolor=ft.colors.WHITE,
         )
         self.lamination_divider = ft.Divider()
-
+    
         processing_choices = list(DATA['Плёнка']['Обработка']['Вид обработки'].keys())
         self.processing = ft.Dropdown(
             label="Вид обработки",
@@ -166,7 +96,7 @@ class PlasticGUI(ft.UserControl):
             ],
             value=processing_choices[0],
             alignment=ft.alignment.center,
-            on_change=self.processing_func,
+            # on_change=self.processing_func,
             bgcolor=ft.colors.WHITE,
         )
         self.sampling_method = ft.Dropdown(
@@ -174,7 +104,7 @@ class PlasticGUI(ft.UserControl):
             options=[],
             value=None,
             alignment=ft.alignment.center,
-            on_change=self.sampling_func,
+            # on_change=self.sampling_func,
             bgcolor=ft.colors.WHITE,
             visible=False
         )
@@ -199,8 +129,7 @@ class PlasticGUI(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             visible=False
         )
-        
-        return card(
+        self.card_process = card(
             'Обработка',
             [
                 self.processing,
@@ -211,6 +140,149 @@ class PlasticGUI(ft.UserControl):
                 self.lamination
             ]
         )
+        return self.card_process
+        
+    def visible_processing_fields(self):
+        fields_data = DATA['Плёнка']['Обработка']['Вид обработки'][self.processing.value]
+        self.sampling_method.visible = False
+        self.sampling_complexity.visible = False
+        self.mounting_plastic.visible = False
+        if 'Вид выборки' in fields_data:
+            data_sampling = fields_data['Вид выборки']
+            options_sampling = list(data_sampling.keys())
+            self.sampling_method.options = [
+                ft.dropdown.Option(choice) for choice in options_sampling
+            ]
+            self.sampling_method.value = options_sampling[0]
+            self.sampling_method.visible = True
+            data_complexity = data_sampling[options_sampling[0]]
+            if "Сложность выборки" in data_complexity:
+                options_complexity = list(data_complexity["Сложность выборки"].keys())
+                self.sampling_complexity.options = [
+                    ft.dropdown.Option(choice) for choice in options_complexity
+                ]
+                self.sampling_complexity.value = options_complexity[0]
+                self.sampling_complexity.visible = True
+        if 'Монтажная пленка' in fields_data:
+            self.mounting_plastic.visible = True
+            
+    def visible_sampling_func(self, event):
+        self.sampling_complexity.visible = False
+        sampling = DATA['Плёнка']['Обработка']['Вид обработки'][self.processing.value].get('Вид выборки')
+        if sampling:
+            if "Сложность выборки" in sampling[event.control.value]:
+                options_complexity = list(sampling[event.control.value]["Сложность выборки"].keys())
+                self.sampling_complexity.options = [
+                    ft.dropdown.Option(choice) for choice in options_complexity
+                ]
+                self.sampling_complexity.value = options_complexity[0]
+                self.sampling_complexity.visible = True
+                
+    def checking_values_elems(self):
+        checked_var = True
+        if self.color_material.visible:
+            if not self.color_material.value:
+                if not self.color_material.error_text:
+                    self.color_material.error_text = 'Введите цвет композита'
+                checked_var = False
+        return checked_var
+    
+    def visible_elems(self, check):
+        for elem in (self.divider_top, self.divider_down, self.name, self.card_material, self.card_process):
+            if elem:
+                elem.visible = check
+                
+    def create_data_elems(self) -> dict:
+        attributes_to_check = {
+            self.color_material: 'color_material',
+            self.lamination: 'lamination',
+            self.sampling_method: 'sampling_method',
+            self.sampling_complexity: 'sampling_complexity',
+            self.mounting_plastic: 'mounting_plastic',
+            self.print_quality: 'print_quality'
+        }
+        add_data = {}
+        for attribute, key in attributes_to_check.items():
+            if not attribute.visible:
+                add_data[key] = None
+            else:
+                add_data[key] = attribute.value
+        return {
+            'material': {
+                'name': self.material.value,
+                'print_quality': add_data['print_quality'],
+                'color_material': add_data['color_material'],
+            },
+            'processing': {
+                'lamination': add_data['lamination'],
+                'processing': self.processing.value,
+                'sampling_method': add_data['sampling_method'],
+                'sampling_complexity': add_data['sampling_complexity'],
+                'mounting_plastic': add_data['mounting_plastic']
+            }
+        }
+                
+
+class PlasticGUI(ft.UserControl, PlasticElements):
+    
+    def __init__(self, page, main_price, main_sale_price, coefficient):
+        super().__init__()
+        self.page = page
+        self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
+        self.height_plastic = None
+        self.width_plastic = None
+        self.quantity = None
+        self.button_send = None
+
+        self.load_file_btn = None
+        self.load_file_text = None
+        self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
+        self.page.overlay.append(self.pick_files_dialog)
+        self.page.update()
+        self.upload_files = []
+        
+    def material_func(self, _event):
+        self.visible_material_fields()
+        self.update()
+        
+    def load_file(self, e: ft.FilePickerResultEvent):
+        if not e.files:
+            self.load_file_text.value = ''
+            self.upload_files = []
+        else:
+            self.load_file_text.value = ", ".join(map(lambda f: f.name, e.files))
+            # todo реализация только для пк, потом переделать
+            for num, file in enumerate(e.files):
+                self.upload_files.append(
+                    [f"Макет_Пленки_{num}.{file.name.split('.')[-1]}", file.path]
+                )
+        self.update()
+        
+    def color_material_func(self, _event):
+        if self.color_material and self.color_material.value:
+            self.color_material.error_text = ''
+        self.update()
+    
+    def material_card(self):
+        card_material = self.create_elements_material()
+        self.material.on_change = self.material_func
+        self.color_material.on_change = self.color_material_func
+        return card_material
+    
+    def processing_func(self, _event):
+        self.visible_processing_fields()
+        self.update()
+    
+    def sampling_func(self, event):
+        self.visible_sampling_func(event)
+        self.update()
+    
+    def processing_card(self):
+        card_process = self.create_elements_processing()
+        self.lamination.on_change = self.processing_func
+        self.processing.on_change = self.processing_func
+        self.sampling_method.on_change = self.sampling_func
+        return card_process
 
     def checking_size(self, event):
         checking_size(event)
@@ -298,48 +370,21 @@ class PlasticGUI(ft.UserControl):
         return column_controls
     
     def create_data(self):
-        ic(self.print_quality.value)
-        attributes_to_check = {
-            self.color_material: 'color_material',
-            self.lamination: 'lamination',
-            self.sampling_method: 'sampling_method',
-            self.sampling_complexity: 'sampling_complexity',
-            self.mounting_plastic: 'mounting_plastic',
-            self.print_quality: 'print_quality'
-        }
-        add_data = {}
-        for attribute, key in attributes_to_check.items():
-            if not attribute.visible:
-                add_data[key] = None
-            else:
-                add_data[key] = attribute.value
-        data = {
-            'material': {
-                'name': self.material.value,
-                'print_quality': add_data['print_quality'],
-                'color_material': add_data['color_material'],
-            },
-            'processing': {
-                'lamination': add_data['lamination'],
-                'processing': self.processing.value,
-                'sampling_method': add_data['sampling_method'],
-                'sampling_complexity': add_data['sampling_complexity'],
-                'mounting_plastic': add_data['mounting_plastic']
-            },
-            'height': self.height_plastic.value,
-            'width': self.width_plastic.value,
-            'quantity': self.quantity.value
-        }
-        
-        return ic(data)
+        data = self.create_data_elems()
+        if isinstance(data, dict):
+            data.update(
+                {
+                    'height': self.height_plastic.value,
+                    'width': self.width_plastic.value,
+                    'quantity': self.quantity.value
+                }
+            )
+        else:
+            raise TypeError()
+        return data
 
     def checking_entered_values(self, _event):
-        checked_var = True
-        if self.color_material.visible:
-            if not self.color_material.value:
-                if not self.color_material.error_text:
-                    self.color_material.error_text = 'Введите цвет композита'
-                checked_var = False
+        checked_var = self.checking_values_elems()
         if self.height_plastic.error_text or self.width_plastic.error_text or self.quantity.error_text:
             checked_var = False
         else:
