@@ -29,10 +29,7 @@ def processing_calc(data):
     price_holder = prices_holder['Себестоимость']
     sale_price_holder = prices_holder['Продажа']
     
-    prices_film = DATA['Обработка']['Накатка пленки'][data['processing']['rolling_film']]
-    price_film = prices_film['Себестоимость']
-    sale_price_film = prices_film['Продажа']
-    if data['processing']['rolling_film'] == "Не требуется":
+    if data['processing']['rolling_film'] == "Не требуется" or not data['processing']['rolling_film']:
         coefficient_film = 1
     else:
         coefficient_film = 0.9
@@ -43,8 +40,10 @@ def processing_calc(data):
     if price_holder and sale_price_holder:
         price += price_holder
         sale_price += sale_price_holder
-        
-    if price_film and sale_price_film:
+    if data['processing']['rolling_film']:
+        prices_film = DATA['Обработка']['Накатка пленки'][data['processing']['rolling_film']]
+        price_film = prices_film['Себестоимость']
+        sale_price_film = prices_film['Продажа']
         price += price_film
         sale_price += sale_price_film
     

@@ -82,21 +82,51 @@ def content_material(data):
 
 
 def content_processing(data):
-    return [
+    content_list = [
         ft.Text(
             text_align=ft.TextAlign.CENTER,
             spans=[
                 ft.TextSpan('Вид резки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
                 ft.TextSpan(data['processing']['type_cut'], ft.TextStyle(weight=ft.FontWeight.W_700)),
             ]
-        ),
-        ft.Text(
-            text_align=ft.TextAlign.CENTER,
-            spans=[
-                ft.TextSpan('Накатка пленки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                ft.TextSpan(data['processing']['rolling_film'], ft.TextStyle(weight=ft.FontWeight.W_700)),
-            ]
-        ),
+        )
+    ]
+    if data['processing']['rolling_film']:
+        content_list.append(
+            ft.Text(
+                text_align=ft.TextAlign.CENTER,
+                spans=[
+                    ft.TextSpan('Накатка пленки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                    ft.TextSpan(data['processing']['rolling_film'], ft.TextStyle(weight=ft.FontWeight.W_700)),
+                ]
+            )
+        )
+    if data['processing']['side_film']:
+        content_list.append(
+            ft.Text(
+                text_align=ft.TextAlign.CENTER,
+                spans=[
+                    ft.TextSpan('Сторона накатки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                    ft.TextSpan(data['processing']['side_film'], ft.TextStyle(weight=ft.FontWeight.W_700)),
+                ]
+            )
+        )
+        
+    content_list.extend([
+        # ft.Text(
+        #     text_align=ft.TextAlign.CENTER,
+        #     spans=[
+        #         ft.TextSpan('Вид резки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+        #         ft.TextSpan(data['processing']['type_cut'], ft.TextStyle(weight=ft.FontWeight.W_700)),
+        #     ]
+        # ),
+        # ft.Text(
+        #     text_align=ft.TextAlign.CENTER,
+        #     spans=[
+        #         ft.TextSpan('Накатка пленки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+        #         ft.TextSpan(data['processing']['rolling_film'], ft.TextStyle(weight=ft.FontWeight.W_700)),
+        #     ]
+        # ),
         ft.Text(
             text_align=ft.TextAlign.CENTER,
             spans=[
@@ -127,7 +157,8 @@ def content_processing(data):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         ),
-    ]
+    ])
+    return content_list
 
 
 def content_sizes(data):

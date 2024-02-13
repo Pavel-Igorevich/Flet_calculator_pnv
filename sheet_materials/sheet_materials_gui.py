@@ -34,6 +34,7 @@ class SheetMaterials(ft.UserControl):
         self.button_send = None
         
         self.plastic_class = PlasticElements()
+        self.side_film_app = None
         
         self.load_file_btn = None
         self.load_file_text = None
@@ -96,14 +97,26 @@ class SheetMaterials(ft.UserControl):
         else:
             self.material_color.visible = False
             self.material_color.value = None
+            
+    def visible_proces_rolling_film(self):
+        material_data = DATA['Листовые материалы']['Материал'][self.material.value]
+        visible_roll_film = material_data.get('Накатка')
+        if visible_roll_film is not None:
+            self.proces_rolling_film.visible = visible_roll_film
+            self.proces_rolling_film.value = 'Не требуется'
+        else:
+            self.proces_rolling_film.visible = True
     
-    def material_func(self, _event):
+    def material_func(self, event):
         self.visible_type_mat()
         self.visible_thickness_color_mat()
+        self.visible_proces_rolling_film()
+        self.plastic_func(event)
         self.update()
         
     def type_mat_func(self, _event):
         self.visible_thickness_color_mat()
+        self.visible_side_film_app()
         self.update()
     
     def checking_cable(self, event):
@@ -136,6 +149,12 @@ class SheetMaterials(ft.UserControl):
         self.update()
 
     def create_data(self):
+        visible_roll = DATA['Листовые материалы']['Материал'][self.material.value].get('Накатка')
+        values_roll = self.proces_rolling_film.value if visible_roll is None or visible_roll else None
+        if self.side_film_app.visible:
+            value_side_film = self.side_film_app.value
+        else:
+            value_side_film = None
         data = {
             'material': {
                 'name': self.material.value,
@@ -146,7 +165,8 @@ class SheetMaterials(ft.UserControl):
             },
             'processing': {
                 'type_cut': self.proces_type_cutting.value,
-                'rolling_film': self.proces_rolling_film.value,
+                'rolling_film': values_roll,
+                'side_film': value_side_film,
                 'holder': self.proces_holder.value
             },
             'backlighting': {
@@ -343,6 +363,16 @@ class SheetMaterials(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             on_change=self.plastic_func
         )
+        self.side_film_app = ft.Dropdown(
+            label="Сторона накатки",
+            options=[
+                ft.dropdown.Option(material) for material in ['Лицевая', 'Тыльная']
+            ],
+            value='Лицевая',
+            alignment=ft.alignment.center,
+            bgcolor=ft.colors.WHITE,
+            visible=False
+        )
     
         proces_holder_choices = list(DATA['Листовые материалы']['Обработка']['Держатель'].keys())
         self.proces_holder = ft.Dropdown(
@@ -359,6 +389,7 @@ class SheetMaterials(ft.UserControl):
                 [
                     self.proces_type_cutting,
                     self.proces_rolling_film,
+                    self.side_film_app,
                     self.proces_holder
                 ]
             )
@@ -476,7 +507,14 @@ class SheetMaterials(ft.UserControl):
     def plastic_sampling_func(self, event):
         self.plastic_class.visible_sampling_func(event)
         self.update()
-    
+
+    def visible_side_film_app(self):
+        type_value = self.material_type.value
+        if type_value and 'Прозрач' in type_value and self.proces_rolling_film.value != 'Не требуется':
+            self.side_film_app.visible = True
+        else:
+            self.side_film_app.visible = False
+            
     def create_fields_plastic(self):
         self.plastic_class.name = ft.Row(
                 [ft.Text('Плёнка', size=25)],
@@ -509,14 +547,11 @@ class SheetMaterials(ft.UserControl):
                 self.plastic_class.processing.options = [ft.dropdown.Option('Плоттер'), ]
                 self.plastic_class.processing.value = 'Плоттер'
             else:
-                processing_choices = list(DATA['Плёнка']['Обработка']['Вид обработки'].keys())
-                if 'Плоттер' in processing_choices:
-                    processing_choices.remove('Плоттер')
-                self.plastic_class.processing.options = [ft.dropdown.Option(choice) for choice in processing_choices]
-                if processing_choices:
-                    self.plastic_class.processing.value = processing_choices[0]
+                self.plastic_class.processing.options = [ft.dropdown.Option('Резка с запасом'), ]
+                self.plastic_class.processing.value = 'Резка с запасом'
             self.plastic_class.visible_processing_fields()
         self.plastic_class.visible_elems(check)
+        self.visible_side_film_app()
         self.update()
 
     def create_fields(self):
@@ -544,6 +579,8 @@ class SheetMaterials(ft.UserControl):
         self.visible_backlighting_param()
         self.visible_type_mat()
         self.visible_thickness_color_mat()
+        self.visible_proces_rolling_film()
+        self.visible_side_film_app()
         return column_controls
 
     def build(self):
