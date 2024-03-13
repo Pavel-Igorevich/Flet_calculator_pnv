@@ -1,15 +1,19 @@
-import flet as ft
 from datetime import datetime
+
+import flet as ft
+
 from banner.result_gui import result_content
-from data import DATA
 from calculations.banner_calc import main_calc
+from data import DATA
 from list_orders import ORDERS
 from other_func import card, checking_size, checking_quantity
+
+
 # from icecream import ic
 
 
 class BannerGUI(ft.UserControl):
-    
+
     def __init__(self, page, main_price, main_sale_price, coefficient):
         super().__init__()
         self.page = page
@@ -32,14 +36,14 @@ class BannerGUI(ft.UserControl):
         self.text_side = None
         self.error_message_sides = None
         self.result_modal = None
-        
+
         self.load_file_btn = None
         self.load_file_text = None
         self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
         self.page.overlay.append(self.pick_files_dialog)
         self.page.update()
         self.upload_files = []
-        
+
         self.sides_icons = {
             'Левая': ft.icons.BORDER_LEFT,
             'Правая': ft.icons.BORDER_RIGHT,
@@ -48,7 +52,7 @@ class BannerGUI(ft.UserControl):
             'Все стороны': ft.icons.BORDER_OUTER,
             'По углам': ft.icons.ALL_OUT,
         }
-        
+
     def load_file(self, e: ft.FilePickerResultEvent):
         if not e.files:
             self.load_file_text.value = ''
@@ -61,24 +65,24 @@ class BannerGUI(ft.UserControl):
                     [f"Макет_Баннера_{num}.{file.name.split('.')[-1]}", file.path]
                 )
         self.update()
-    
+
     def visible_welding_step(self):
         if DATA['Баннер']['Обработка'][self.processing.value].get('Шаг сварки'):
             steps = list(DATA['Баннер']['Обработка'][self.processing.value]['Шаг сварки'].keys())
             self.welding_step.options = [ft.dropdown.Option(step) for step in steps]
             self.welding_step.value = steps[0]
             self.welding_step.visible = True
-        
+
         else:
             self.welding_step.visible = False
-    
+
     def visible_sides(self):
         side_mapping = self.generate_side_mapping()
         if self.processing:
             sides = DATA['Баннер']['Обработка'][self.processing.value].get('Сторона')
         else:
             sides = None
-        
+
         if sides:
             self.text_side.visible = True
             for name_side in self.sides_icons.keys():
@@ -92,18 +96,18 @@ class BannerGUI(ft.UserControl):
                 side.visible = False
             self.text_side.visible = False
             self.error_message_sides.visible = False
-    
+
     def processing_func(self, _event):
         self.visible_welding_step()
         self.visible_sides()
         self.update()
-    
+
     def material_func(self, event):
         list_choices = list(DATA['Баннер']['Материал'][event.control.value]['Качество печати'].keys())
         self.print_quality.options = [ft.dropdown.Option(quality) for quality in list_choices]
         self.print_quality.value = list_choices[0]
         self.update()
-    
+
     def create_sides_processing(self):
         side_attributes = {
             'Левая': 'left_side',
@@ -113,9 +117,9 @@ class BannerGUI(ft.UserControl):
             'Все стороны': 'all_sides',
             'По углам': 'corners',
         }
-        
+
         elems = []
-        
+
         for name_side, icon in self.sides_icons.items():
             side = ft.Chip(
                 label=ft.Icon(icon, size=20),
@@ -128,7 +132,7 @@ class BannerGUI(ft.UserControl):
             setattr(self, side_attributes.get(name_side, name_side), side)
             elems.append(side)
         return ft.ResponsiveRow(elems, alignment=ft.MainAxisAlignment.CENTER)
-    
+
     def chip_event_func(self, event):
         side_mapping = self.generate_side_mapping()
         if event.control.tooltip in ('Все стороны', 'По углам'):
@@ -148,7 +152,7 @@ class BannerGUI(ft.UserControl):
         if any([side_mapping[name_side].selected for name_side in side_mapping]):
             self.error_message_sides.visible = False
         self.update()
-        
+
     def generate_side_mapping(self) -> dict:
         return {
             'Левая': self.left_side,
@@ -158,22 +162,22 @@ class BannerGUI(ft.UserControl):
             'Все стороны': self.all_sides,
             'По углам': self.corners,
         }
-    
+
     def checking_size(self, event):
         checking_size(event)
         self.update()
-    
+
     def checking_quantity(self, event):
         checking_quantity(event)
         self.update()
-    
+
     def create_fields(self):
         column_controls = []
         material_choices = list(DATA['Баннер']['Материал'].keys())
         processing_choices = list(DATA['Баннер']['Обработка'].keys())
         default_material = material_choices[0]
         print_quality_choices = list(DATA['Баннер']['Материал'][default_material]['Качество печати'].keys())
-        
+
         column_controls.append(
             ft.Row(
                 [ft.Text('Баннер', size=25)],
@@ -181,7 +185,7 @@ class BannerGUI(ft.UserControl):
                 spacing=10
             )
         )
-        
+
         self.material = ft.Dropdown(
             label="Материал баннера",
             options=[
@@ -202,7 +206,7 @@ class BannerGUI(ft.UserControl):
             bgcolor=ft.colors.WHITE,
         )
         column_controls.append(card('Материал', [self.material, self.print_quality]))
-        
+
         self.processing = ft.Dropdown(
             label="Обработка",
             options=[
@@ -257,7 +261,7 @@ class BannerGUI(ft.UserControl):
             suffix_text="шт.",
             on_change=self.checking_quantity,
         )
-        
+
         self.load_file_text = ft.TextField(
             label="Файлы макета",
             read_only=True,
@@ -289,7 +293,7 @@ class BannerGUI(ft.UserControl):
             card(
                 'Общие параметры',
                 [self.width_banner, self.height_banner, self.quantity, ft.Divider(), content_files]))
-        
+
         self.button_send = ft.ElevatedButton(
             'Рассчитать',
             style=ft.ButtonStyle(
@@ -301,7 +305,7 @@ class BannerGUI(ft.UserControl):
         self.visible_sides()
         self.visible_welding_step()
         return column_controls
-    
+
     def create_data(self):
         data = {
             'material': {
@@ -322,23 +326,23 @@ class BannerGUI(ft.UserControl):
             data['processing']['sides'] = ', '.join(processing_sides)
         else:
             data['processing']['sides'] = None
-            
+
         if DATA['Баннер']['Обработка'][self.processing.value].get('Шаг сварки'):
             data['processing']['welding_step'] = self.welding_step.value
         else:
             data['processing']['welding_step'] = None
-        
+
         material = DATA['Баннер']['Обработка'][self.processing.value].get('Материал')
         data['processing']['material'] = material
 
         return data
-    
+
     def checking_entered_values(self, _event):
         checked_var = True
         if self.page.banner:
             self.page.banner.open = False
             self.page.update()
-            
+
         if self.text_side.visible:
             side_mapping = self.generate_side_mapping()
             if not any([side_mapping[name_side].selected for name_side in side_mapping]):
@@ -351,7 +355,7 @@ class BannerGUI(ft.UserControl):
                 if not elem.value:
                     elem.error_text = 'Не может быть пустым'
                     checked_var = False
-        
+
         if not checked_var:
             self.page.banner.open = True
             self.page.update()
@@ -366,7 +370,7 @@ class BannerGUI(ft.UserControl):
             self.page.dialog.open = True
             self.page.update()
         self.update()
-    
+
     def build(self):
         self.create_fields()
         return ft.Container(
@@ -375,7 +379,7 @@ class BannerGUI(ft.UserControl):
                 spacing=20,
                 scroll=ft.ScrollMode.AUTO,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            
+
             ),
             padding=20,
             margin=10,

@@ -1,4 +1,5 @@
 import json
+
 from other_func import process_and_replace_keys
 
 
@@ -10,4 +11,3 @@ def load_json_file(file_path):
 
 
 DATA = load_json_file('data.json')
-

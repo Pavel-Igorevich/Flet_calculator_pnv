@@ -1,20 +1,21 @@
 import flet as ft
-from list_orders import ORDERS
+
 from banner.result_gui import result_content as banner_result
 from canvas.result_gui import result_content as canvas_result
-from sheet_materials.result_gui import result_content as sheet_materials_result
+from list_orders import ORDERS
 from plastic.result_gui import result_content as plastic_result
+from sheet_materials.result_gui import result_content as sheet_materials_result
 
 
 class OrdersGUI(ft.UserControl):
-    
+
     def __init__(self, page, main_price, main_sale_price, coefficient):
         super().__init__()
         self.page = page
         self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
         self.card_dict = {}
         self.default_card = None
-        
+
     def show_details(self, event):
         if event.control.key in ORDERS:
             data = ORDERS[event.control.key]
@@ -33,11 +34,9 @@ class OrdersGUI(ft.UserControl):
             elif 'plastic' == data['result_content']:
                 content_data = plastic_result(data)
                 self.page.dialog.content = content_data
-            else:
-                pass
             self.page.dialog.open = True
             self.page.update()
-        
+
     def delete_order(self, event):
         if event.control.key in ORDERS:
             del ORDERS[event.control.key]
@@ -57,29 +56,29 @@ class OrdersGUI(ft.UserControl):
         )
         self.card_dict[key] = card
         return card
-        
+
     def create_fields(self):
         list_orders = []
         self.default_card = ft.Card(
-                    content=ft.Container(
-                        content=ft.Column(
-                            [
-                                ft.ListTile(
-                                    title=ft.Text(
-                                        'Нет расчетов', weight=ft.FontWeight.W_500
-                                    ),
-                                    subtitle=ft.Text(
-                                        f"ожидание расчетов",
-                                        weight=ft.FontWeight.W_200
-                                    ),
-                                    
-                                )
-                            ],
-                        ),
-                        padding=10,
-                        alignment=ft.alignment.center,
-                    )
-                )
+            content=ft.Container(
+                content=ft.Column(
+                    [
+                        ft.ListTile(
+                            title=ft.Text(
+                                'Нет расчетов', weight=ft.FontWeight.W_500
+                            ),
+                            subtitle=ft.Text(
+                                "ожидание расчетов",
+                                weight=ft.FontWeight.W_200
+                            ),
+
+                        )
+                    ],
+                ),
+                padding=10,
+                alignment=ft.alignment.center,
+            )
+        )
         visible_def_card = False
         for order, data in ORDERS.items():
             content = [
@@ -128,11 +127,9 @@ class OrdersGUI(ft.UserControl):
                 spacing=20,
                 scroll=ft.ScrollMode.AUTO,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        
+
             ),
             padding=20,
             margin=10,
             width=500
         )
-        
-        

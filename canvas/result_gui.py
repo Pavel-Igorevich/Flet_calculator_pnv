@@ -1,4 +1,5 @@
 import flet as ft
+
 from other_func import card_result
 
 
@@ -116,7 +117,7 @@ def content_sizes(data):
 
 def content_consumables(data):
     consumption = []
-    
+
     if data['material']['consumption'] or data['processing']['consumption']:
         consumption.extend([
             ft.Text('Расходные материалы', text_align=ft.TextAlign.CENTER),
@@ -186,12 +187,12 @@ def result_content(data):
     consumables = content_consumables(data)
     if consumables:
         list_content.extend(card_result(consumables, 'Расходные материалы'))
-    
+
     return ft.Container(
         content=ft.Column(
             controls=list_content,
             scroll=ft.ScrollMode.AUTO,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        
+
         ),
     )

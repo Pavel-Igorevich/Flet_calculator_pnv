@@ -1,11 +1,11 @@
 import flet as ft
+
 from data import DATA
 from other_func import card, checking_size, checking_quantity
-# from icecream import ic
 
 
 class PressWallGUI(ft.UserControl):
-    
+
     def __init__(self, page, main_price, main_sale_price, coefficient):
         super().__init__()
         self.page = page
@@ -19,24 +19,24 @@ class PressWallGUI(ft.UserControl):
         self.depth_p_w = None
         self.quantity = None
         self.exploitation = None
-        
+
         self.load_file_btn = None
         self.load_file_text = None
         self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
         self.page.overlay.append(self.pick_files_dialog)
         self.page.update()
         self.upload_files = []
-        
+
         self.button_send = None
-    
+
     def checking_size(self, event):
         checking_size(event)
         self.update()
-    
+
     def checking_quantity(self, event):
         checking_quantity(event)
         self.update()
-    
+
     def load_file(self, e: ft.FilePickerResultEvent):
         if not e.files:
             self.load_file_text.value = ''
@@ -49,7 +49,7 @@ class PressWallGUI(ft.UserControl):
                     [f"Макет_Холста_{num}.{file.name.split('.')[-1]}", file.path]
                 )
         self.update()
-        
+
     def visible_material(self):
         skeleton_data = DATA['Пресс-Волл']['Вид каркаса']
         if self.skeleton.value in skeleton_data:
@@ -76,10 +76,10 @@ class PressWallGUI(ft.UserControl):
     def material_func(self, _event):
         self.visible_material()
         self.update()
-    
+
     def create_fields(self):
         skeleton_choices = list(DATA['Пресс-Волл']['Вид каркаса'].keys())
-        
+
         self.skeleton = ft.Dropdown(
             label="Каркас",
             options=[
@@ -90,7 +90,7 @@ class PressWallGUI(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             on_change=self.material_func
         )
-        
+
         self.overhead_elements = ft.Dropdown(
             label="Накладные элементы",
             options=[],
@@ -109,7 +109,7 @@ class PressWallGUI(ft.UserControl):
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-        
+
         print_choices = DATA['Пресс-Волл']['Качество печати']
         self.print_quality = ft.Dropdown(
             label="Качество печати",
@@ -148,7 +148,7 @@ class PressWallGUI(ft.UserControl):
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-        
+
         self.depth_p_w = ft.Dropdown(
             label="Глубина",
             options=[],
@@ -197,7 +197,7 @@ class PressWallGUI(ft.UserControl):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
-        
+
         column_controls.append(
             card(
                 'Общие параметры',
@@ -226,7 +226,7 @@ class PressWallGUI(ft.UserControl):
         column_controls.append(self.button_send)
         self.visible_material()
         return column_controls
-    
+
     def build(self):
         self.create_fields()
         return ft.Container(
@@ -235,7 +235,7 @@ class PressWallGUI(ft.UserControl):
                 spacing=20,
                 scroll=ft.ScrollMode.AUTO,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
-            
+
             ),
             padding=20,
             margin=10,

@@ -1,5 +1,5 @@
-from data import DATA
 from calculations.default_calc_func import perimeter_calc, square_calc, find_coefficient, amount_str
+from data import DATA
 
 DATA_CANVAS = DATA['Холст']
 
@@ -12,19 +12,19 @@ def main_calc(data):
     perimeter = perimeter_calc(height, width)
 
     coefficient = find_coefficient(square, DATA_CANVAS['Коэффициент'])
-    
+
     data_material = data['material']['name']
     price_material = DATA_CANVAS['Материал'][data_material]['Себестоимость'] * square
     sale_price_material = DATA_CANVAS['Материал'][data_material]['Продажа'] * square
     price_material *= quantity
     sale_price_material *= quantity
-    
+
     data_processing = data['processing']['type']
     price_processing = DATA_CANVAS['Обработка'][data_processing]['Себестоимость'] * perimeter
     sale_price_processing = DATA_CANVAS['Обработка'][data_processing]['Продажа'] * perimeter
     price_processing *= quantity
     sale_price_processing *= quantity
-    
+
     main_price = round(price_material + price_processing, 2)
     main_sale_price = sale_price_material + sale_price_processing
     main_sale_price = round(main_sale_price * coefficient, 2)
@@ -37,7 +37,7 @@ def main_calc(data):
 
     material = DATA['Холст']['Обработка'][data_processing].get('Материал')
     data['processing']['material'] = material
-    
+
     data['material']['full_name'] = material_name
     data['material']['price'] = amount_str(price_material)
     data['material']['sale_price'] = amount_str(sale_price_material)

@@ -1,12 +1,11 @@
 import flet as ft
-from banner.banner_gui import BannerGUI
-from sheet_materials.sheet_materials_gui import SheetMaterials
-from plastic.plastic_gui import PlasticGUI
-from canvas.canvas_gui import CanvasGUI
-from press_wall.press_wall_gui import PressWallGUI
 
+from banner.banner_gui import BannerGUI
+from canvas.canvas_gui import CanvasGUI
 from orders.orders_gui import OrdersGUI
-# from icecream import ic
+from plastic.plastic_gui import PlasticGUI
+from press_wall.press_wall_gui import PressWallGUI
+from sheet_materials.sheet_materials_gui import SheetMaterialsGUI
 
 
 class MainMenu:
@@ -19,11 +18,11 @@ class MainMenu:
         self.result_modal = None
         self.main_content = None
         self.enable_user_control = None
-        
+
     def close_banner(self, _event):
         self.page.banner.open = False
         self.page.update()
-        
+
     def settings(self):
         self.page.banner = ft.Banner(
             leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.RED_500, size=40),
@@ -50,14 +49,13 @@ class MainMenu:
         def close_dlg(_event):
             self.result_modal.open = False
             self.page.update()
-        
+
         style_btn_modal = ft.ButtonStyle(
             bgcolor=ft.colors.AMBER, color=ft.colors.BLACK, padding={ft.MaterialState.DEFAULT: 10}
         )
         self.result_modal = ft.AlertDialog(
             modal=True,
             title=ft.Text("Результат расчета", text_align=ft.TextAlign.CENTER),
-            content=[],
             content_padding=ft.padding.symmetric(vertical=20, horizontal=10),
             actions=[
                 ft.ResponsiveRow(
@@ -108,11 +106,11 @@ class MainMenu:
             actions_alignment=ft.MainAxisAlignment.CENTER,
         )
         self.page.dialog = self.result_modal
-    
+
     def show_drawer(self, _event):
         self.page.drawer.open = True
         self.page.drawer.update()
-        
+
     def test(self, _event):
         index = self.page.drawer.selected_index
         self.page.remove(self.enable_user_control)
@@ -131,7 +129,7 @@ class MainMenu:
                 self.coefficient
             )
         elif index == 2:
-            self.enable_user_control = SheetMaterials(
+            self.enable_user_control = SheetMaterialsGUI(
                 self.page,
                 self.main_price,
                 self.main_sale_price,
@@ -160,17 +158,17 @@ class MainMenu:
             )
         else:
             self.enable_user_control = self.main_content
-            
+
         self.page.drawer.open = False
         self.page.add(self.enable_user_control)
-            
+
     def create_window(self):
         self.main_content = OrdersGUI(
-                self.page,
-                self.main_price,
-                self.main_sale_price,
-                self.coefficient
-            )
+            self.page,
+            self.main_price,
+            self.main_sale_price,
+            self.coefficient
+        )
         menu_button = ft.IconButton(
             icon=ft.icons.MENU,
             icon_size=30,
@@ -211,12 +209,12 @@ class MainMenu:
         )
         self.enable_user_control = self.main_content
         self.page.add(self.enable_user_control)
-        
+
     def run_main_menu(self):
         self.create_window()
         self.settings()
         self.page.add()
-        
+
 
 def run_app(page: ft.Page):
     menu = MainMenu(page)
@@ -224,5 +222,5 @@ def run_app(page: ft.Page):
 
 
 if __name__ == '__main__':
-    # ft.app(run_app, view=ft.AppView.WEB_BROWSER, port=8080)
-    ft.app(run_app, upload_dir="files")
+    ft.app(run_app, view=ft.AppView.WEB_BROWSER, port=8080)
+    # ft.app(run_app, upload_dir="files")

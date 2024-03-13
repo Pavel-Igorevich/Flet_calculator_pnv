@@ -1,4 +1,5 @@
 import flet as ft
+
 from other_func import card_result
 
 
@@ -153,7 +154,7 @@ def content_lamination(data):
                     ft.Text(
                         text_align=ft.TextAlign.CENTER,
                         spans=[
-                            ft.TextSpan(f'Себестоимость\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                            ft.TextSpan('Себестоимость\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
                             ft.TextSpan(f"{data['processing']['lamination_price']}\xa0₽",
                                         ft.TextStyle(weight=ft.FontWeight.W_700)),
                         ],
@@ -162,7 +163,7 @@ def content_lamination(data):
                     ft.Text(
                         text_align=ft.TextAlign.CENTER,
                         spans=[
-                            ft.TextSpan(f'Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                            ft.TextSpan('Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
                             ft.TextSpan(f"{data['processing']['lamination_sale_price']}\xa0₽",
                                         ft.TextStyle(weight=ft.FontWeight.W_700)),
                         ],
@@ -171,7 +172,7 @@ def content_lamination(data):
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
             )
-            
+
         ]
     else:
         return None
@@ -227,12 +228,12 @@ def result_content(data):
     if content_lamin:
         list_content.extend(card_result(content_lamin, 'Ламинация'))
     list_content.extend(card_result(content_sizes(data), 'Общие параметры'))
-    
+
     return ft.Container(
         content=ft.Column(
             controls=list_content,
             scroll=ft.ScrollMode.AUTO,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        
+
         ),
     )

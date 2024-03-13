@@ -1,15 +1,17 @@
+from datetime import datetime
+
 import flet as ft
-from data import DATA
-from other_func import card, checking_size, checking_quantity
+
 from calculations.canvas_calc import main_calc
 from canvas.result_gui import result_content
+from data import DATA
 from list_orders import ORDERS
-from datetime import datetime
-# from icecream import ic
+from other_func import card, checking_size, checking_quantity
 
 
 class CanvasGUI(ft.UserControl):
-    
+    DATA = DATA['Холст']
+
     def __init__(self, page, main_price, main_sale_price, coefficient):
         super().__init__()
         self.page = page
@@ -19,16 +21,16 @@ class CanvasGUI(ft.UserControl):
         self.height_canvas = None
         self.width_canvas = None
         self.quantity = None
-        
+
         self.load_file_btn = None
         self.load_file_text = None
         self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
         self.page.overlay.append(self.pick_files_dialog)
         self.page.update()
         self.upload_files = []
-        
+
         self.button_send = None
-        
+
     def checking_size(self, event):
         checking_size(event)
         self.update()
@@ -36,7 +38,7 @@ class CanvasGUI(ft.UserControl):
     def checking_quantity(self, event):
         checking_quantity(event)
         self.update()
-        
+
     def load_file(self, e: ft.FilePickerResultEvent):
         if not e.files:
             self.load_file_text.value = ''
@@ -49,10 +51,10 @@ class CanvasGUI(ft.UserControl):
                     [f"Макет_Холста_{num}.{file.name.split('.')[-1]}", file.path]
                 )
         self.update()
-    
+
     def create_fields(self):
-        material_choices = list(DATA['Холст']['Материал'].keys())
-        
+        material_choices = list(DATA['Материал'].keys())
+
         self.material = ft.Dropdown(
             label="Материал холста",
             options=[
@@ -62,8 +64,8 @@ class CanvasGUI(ft.UserControl):
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-        
-        processing_choices = list(DATA['Холст']['Обработка'].keys())
+
+        processing_choices = list(DATA['Обработка'].keys())
 
         self.processing = ft.Dropdown(
             label="Вид обработки",
@@ -124,14 +126,14 @@ class CanvasGUI(ft.UserControl):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
-        
+
         column_controls.append(
             card(
                 'Общие параметры',
                 [self.width_canvas, self.height_canvas, self.quantity, ft.Divider(), content_files]
             )
         )
-        
+
         self.button_send = ft.ElevatedButton(
             'Рассчитать',
             style=ft.ButtonStyle(
@@ -147,7 +149,7 @@ class CanvasGUI(ft.UserControl):
         if self.page.banner:
             self.page.banner.open = False
             self.page.update()
-    
+
         if self.height_canvas.error_text or self.width_canvas.error_text or self.quantity.error_text:
             checked_var = False
         else:
@@ -155,7 +157,7 @@ class CanvasGUI(ft.UserControl):
                 if not elem.value:
                     elem.error_text = 'Не может быть пустым'
                     checked_var = False
-    
+
         if not checked_var:
             self.page.banner.open = True
             self.page.update()
@@ -194,10 +196,9 @@ class CanvasGUI(ft.UserControl):
                 spacing=20,
                 scroll=ft.ScrollMode.AUTO,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
-    
+
             ),
             padding=20,
             margin=10,
             width=500
         )
-        

@@ -20,7 +20,6 @@ def find_coefficient(value, coefficient_dict):
 def amount_str(value: object) -> object:
     return "{:,.2f}".format(value).replace(',', '\xa0')
 
-
 # if __name__ == '__main__':
 #     area_square_meters = (12 * 12) / 1000000
 #     print(area_square_meters)

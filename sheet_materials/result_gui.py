@@ -1,4 +1,5 @@
 import flet as ft
+
 from other_func import card_result
 from plastic import result_gui as plastic_result
 
@@ -111,22 +112,8 @@ def content_processing(data):
                 ]
             )
         )
-        
+
     content_list.extend([
-        # ft.Text(
-        #     text_align=ft.TextAlign.CENTER,
-        #     spans=[
-        #         ft.TextSpan('Вид резки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-        #         ft.TextSpan(data['processing']['type_cut'], ft.TextStyle(weight=ft.FontWeight.W_700)),
-        #     ]
-        # ),
-        # ft.Text(
-        #     text_align=ft.TextAlign.CENTER,
-        #     spans=[
-        #         ft.TextSpan('Накатка пленки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-        #         ft.TextSpan(data['processing']['rolling_film'], ft.TextStyle(weight=ft.FontWeight.W_700)),
-        #     ]
-        # ),
         ft.Text(
             text_align=ft.TextAlign.CENTER,
             spans=[
@@ -262,71 +249,8 @@ def content_backlighting(data):
     return content_list
 
 
-# def content_consumables(data):
-#     consumption = []
-#
-#     if data['material']['consumption'] or data['processing']['consumption']:
-#         consumption.extend([
-#             ft.Text('Расходные материалы', text_align=ft.TextAlign.CENTER),
-#             ft.Divider()
-#         ])
-#     if data['material']['consumption']:
-#         consumption.extend([
-#             ft.ResponsiveRow(
-#                 [
-#                     ft.Text(
-#                         text_align=ft.TextAlign.CENTER,
-#                         spans=[
-#                             ft.TextSpan('Материал: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-#                             ft.TextSpan(data['material']['full_name'], ft.TextStyle(weight=ft.FontWeight.W_700)),
-#                         ],
-#                         col={'xs': 12, 'sm': 6}
-#                     ),
-#                     ft.Text(
-#                         text_align=ft.TextAlign.CENTER,
-#                         spans=[
-#                             ft.TextSpan('Расход: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-#                             ft.TextSpan(
-#                                 f"{data['material']['consumption']}\xa0м²", ft.TextStyle(weight=ft.FontWeight.W_700)
-#                             ),
-#                         ],
-#                         col={'xs': 12, 'sm': 6}
-#                     ),
-#                 ],
-#                 alignment=ft.MainAxisAlignment.CENTER,
-#             )
-#         ])
-#     if data['processing']['consumption']:
-#         consumption.extend([
-#             ft.Divider(),
-#             ft.ResponsiveRow(
-#                 [
-#                     ft.Text(
-#                         text_align=ft.TextAlign.CENTER,
-#                         spans=[
-#                             ft.TextSpan('Материал обработки: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-#                             ft.TextSpan(data['processing']['material'], ft.TextStyle(weight=ft.FontWeight.W_700)),
-#                         ],
-#                         col={'xs': 12, 'sm': 6}
-#                     ),
-#                     ft.Text(
-#                         text_align=ft.TextAlign.CENTER,
-#                         spans=[
-#                             ft.TextSpan('Расход: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-#                             ft.TextSpan(
-#                                 f"{data['processing']['consumption']}\xa0м", ft.TextStyle(weight=ft.FontWeight.W_700)
-#                             ),
-#                         ],
-#                         col={'xs': 12, 'sm': 6}
-#                     ),
-#                 ],
-#                 alignment=ft.MainAxisAlignment.CENTER,
-#             ),
-#         ])
-#     return consumption
-
 def card_general_prices(data):
-    return [
+    return (
         ft.Text(
             'Листовые материалы',
             text_align=ft.TextAlign.CENTER,
@@ -400,7 +324,7 @@ def card_general_prices(data):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
         )
-    ]
+    )
 
 
 def result_content(data):
@@ -422,6 +346,6 @@ def result_content(data):
             controls=list_content,
             scroll=ft.ScrollMode.AUTO,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        
+
         ),
     )

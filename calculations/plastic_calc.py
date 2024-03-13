@@ -1,5 +1,6 @@
-from data import DATA
 from calculations.default_calc_func import perimeter_calc, square_calc, find_coefficient, amount_str
+from data import DATA
+
 DATA_PLASTIC = DATA['Плёнка']
 
 
@@ -17,15 +18,15 @@ def material_calc(material):
     else:
         oracal_data = DATA_PLASTIC['Материал'][name]
         price_material, sale_price_material = oracal_data['Себестоимость'], oracal_data['Продажа']
-    
+
     return price_material, sale_price_material
 
 
 def processing_calc(processing):
-    proces_name = processing['processing']
-    data_process = DATA_PLASTIC['Обработка']['Вид обработки'][proces_name]
+    process_name = processing['processing']
+    data_process = DATA_PLASTIC['Обработка']['Вид обработки'][process_name]
     size_label = 'Площадь'
-    if "Плоттер" == proces_name:
+    if "Плоттер" == process_name:
         if processing['sampling_method'] == 'Без выборки':
             sampling_price = data_process['Вид выборки']['Без выборки']['Себестоимость']
             sampling_sale_price = data_process['Вид выборки']['Без выборки']['Продажа']
@@ -34,22 +35,22 @@ def processing_calc(processing):
             prices_sampling_complexity = sampling_complexity[processing['sampling_complexity']]
             sampling_price = prices_sampling_complexity['Себестоимость']
             sampling_sale_price = prices_sampling_complexity['Продажа']
-        mounting_plastic = DATA_PLASTIC['Обработка']['Вид обработки'][proces_name]['Монтажная пленка']
+        mounting_plastic = DATA_PLASTIC['Обработка']['Вид обработки'][process_name]['Монтажная пленка']
         prices_mounting_plastic = mounting_plastic[processing['mounting_plastic']]
         mounting_price = prices_mounting_plastic['Себестоимость']
         mounting_sale_price = prices_mounting_plastic['Продажа']
-        price_proces, sale_price_proces = sampling_price + mounting_price, sampling_sale_price + mounting_sale_price
+        price_process, sale_price_process = sampling_price + mounting_price, sampling_sale_price + mounting_sale_price
     else:
-        if proces_name == 'Резка с запасом':
+        if process_name == 'Резка с запасом':
             size_label = 'Периметр'
-        price_proces, sale_price_proces = data_process['Себестоимость'], data_process['Продажа']
-        
+        price_process, sale_price_process = data_process['Себестоимость'], data_process['Продажа']
+
     if processing['lamination']:
         lamination_prices = DATA_PLASTIC['Обработка']['Ламинация'][processing['lamination']]
         lamination_price, lamination_sale_price = lamination_prices['Себестоимость'], lamination_prices['Продажа']
     else:
         lamination_price, lamination_sale_price = 0, 0
-    return price_proces, sale_price_proces, lamination_price, lamination_sale_price, size_label
+    return price_process, sale_price_process, lamination_price, lamination_sale_price, size_label
 
 
 def main_calc(data):
@@ -64,12 +65,12 @@ def main_calc(data):
         coefficient = find_coefficient(square, DATA_PLASTIC['Коэффициент'])
     else:
         coefficient = 1
-    
+
     if size_label == 'Периметр':
         multiplier_process = perimeter_calc(height, width)
     else:
         multiplier_process = square
-    
+
     main_price = round(
         ((lamination_price + price_material) * square)
         + (price_processing * multiplier_process) * quantity

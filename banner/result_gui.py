@@ -1,5 +1,32 @@
 import flet as ft
+
 from other_func import card_result
+
+
+def price_element(price, sale_price):
+    return ft.ResponsiveRow(
+        [
+            ft.Text(
+                text_align=ft.TextAlign.CENTER,
+                spans=[
+                    ft.TextSpan('Себестоимость\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                    # ft.TextSpan(f"{data['material']['price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                    ft.TextSpan(f"{price}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                ],
+                col={'xs': 12, 'sm': 6}
+            ),
+            ft.Text(
+                text_align=ft.TextAlign.CENTER,
+                spans=[
+                    ft.TextSpan('Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                    # ft.TextSpan(f"{data['material']['sale_price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                    ft.TextSpan(f"{sale_price}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
+                ],
+                col={'xs': 12, 'sm': 6}
+            ),
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+    )
 
 
 def content_material(data):
@@ -19,26 +46,7 @@ def content_material(data):
             ]
         ),
         ft.Divider(),
-        ft.ResponsiveRow(
-            [
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Себестоимость\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['material']['price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 6}
-                ),
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['material']['sale_price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 6}
-                ),
-            ]
-        )
+        price_element(data['material']['price'], data['material']['sale_price'])
     ]
 
 
@@ -74,30 +82,8 @@ def content_processing(data):
         )
     processing_content.append(ft.Divider())
     processing_content.append(
-        ft.ResponsiveRow(
-            [
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Себестоимость\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['processing']['price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 6}
-                ),
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(
-                            f"{data['processing']['sale_price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)
-                        ),
-                    ],
-                    col={'xs': 12, 'sm': 6}
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        ),
-    )
+        price_element(data['processing']['price'], data['processing']['sale_price'])
+    ),
     return processing_content
 
 
@@ -145,7 +131,7 @@ def content_sizes(data):
 
 def content_consumables(data):
     consumption = []
-    
+
     if data['material']['consumption'] or data['processing']['consumption']:
         consumption.extend([
             ft.Text('Расходные материалы', text_align=ft.TextAlign.CENTER),
@@ -215,12 +201,12 @@ def result_content(data):
     consumables = content_consumables(data)
     if consumables:
         list_content.extend(card_result(consumables, 'Расходные материалы'))
-    
+
     return ft.Container(
         content=ft.Column(
             controls=list_content,
             scroll=ft.ScrollMode.AUTO,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        
+
         ),
     )

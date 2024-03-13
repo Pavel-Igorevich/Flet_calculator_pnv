@@ -1,16 +1,20 @@
-import flet as ft
-from data import DATA
-from calculations.sheet_materials_calc import main_calc
-from other_func import card, checking_size, checking_quantity
-from list_orders import ORDERS
-from sheet_materials.result_gui import result_content
-from calculations.plastic_calc import main_calc as plastic_calc
-from plastic.plastic_gui import PlasticElements
 from datetime import datetime
+
+import flet as ft
+
+from calculations.plastic_calc import main_calc as plastic_calc
+from calculations.sheet_materials_calc import main_calc
+from data import DATA
+from list_orders import ORDERS
+from other_func import card, checking_size, checking_quantity
+from plastic.plastic_gui import PlasticElements
+from sheet_materials.result_gui import result_content
 
 
 class SheetMaterials(ft.UserControl):
-    
+    not_required = 'Не требуется'
+    data = DATA['Листовые материалы']
+
     def __init__(self, page, main_price, main_sale_price, coefficient):
         super().__init__()
         self.page = page
@@ -32,17 +36,21 @@ class SheetMaterials(ft.UserControl):
         self.width_sheet = None
         self.quantity = None
         self.button_send = None
-        
+
+        self.data_material = SheetMaterials.data['Материал']
+        self.data_backlighting = SheetMaterials.data['Световое исполнение']
+        self.data_processing = SheetMaterials.data['Обработка']
+
         self.plastic_class = PlasticElements()
         self.side_film_app = None
-        
+
         self.load_file_btn = None
         self.load_file_text = None
         self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
         self.page.overlay.append(self.pick_files_dialog)
         self.page.update()
         self.upload_files = []
-        
+
     def load_file(self, e: ft.FilePickerResultEvent):
         if not e.files:
             self.load_file_text.value = ''
@@ -55,9 +63,9 @@ class SheetMaterials(ft.UserControl):
                     [f"Макет_Листовых_материалов_{num}.{file.name.split('.')[-1]}", file.path]
                 )
         self.update()
-        
+
     def visible_type_mat(self):
-        material_data = DATA['Листовые материалы']['Материал'][self.material.value]
+        material_data = self.data_material[self.material.value]
         point_keys = list(material_data['Вид'].keys())
         if None in point_keys:
             self.material_type.value = None
@@ -75,9 +83,9 @@ class SheetMaterials(ft.UserControl):
         else:
             self.material_edge.value = None
             self.material_edge.visible = False
-            
+
     def visible_thickness_color_mat(self):
-        material_data = DATA['Листовые материалы']['Материал'][self.material.value]
+        material_data = self.data_material[self.material.value]
         if not self.material_type.value:
             key = None
         else:
@@ -97,28 +105,28 @@ class SheetMaterials(ft.UserControl):
         else:
             self.material_color.visible = False
             self.material_color.value = None
-            
+
     def visible_proces_rolling_film(self):
-        material_data = DATA['Листовые материалы']['Материал'][self.material.value]
+        material_data = self.data_material[self.material.value]
         visible_roll_film = material_data.get('Накатка')
         if visible_roll_film is not None:
             self.proces_rolling_film.visible = visible_roll_film
-            self.proces_rolling_film.value = 'Не требуется'
+            self.proces_rolling_film.value = self.not_required
         else:
             self.proces_rolling_film.visible = True
-    
+
     def material_func(self, event):
         self.visible_type_mat()
         self.visible_thickness_color_mat()
         self.visible_proces_rolling_film()
         self.plastic_func(event)
         self.update()
-        
+
     def type_mat_func(self, _event):
         self.visible_thickness_color_mat()
         self.visible_side_film_app()
         self.update()
-    
+
     def checking_cable(self, event):
         if event.control.value:
             if event.control.value == '0':
@@ -127,7 +135,7 @@ class SheetMaterials(ft.UserControl):
                 event.control.error_text = 'Необходимо целое число'
             else:
                 event.control.error_text = ''
-            
+
         else:
             event.control.error_text = ''
         self.update()
@@ -149,7 +157,7 @@ class SheetMaterials(ft.UserControl):
         self.update()
 
     def create_data(self):
-        visible_roll = DATA['Листовые материалы']['Материал'][self.material.value].get('Накатка')
+        visible_roll = self.data_material[self.material.value].get('Накатка')
         values_roll = self.proces_rolling_film.value if visible_roll is None or visible_roll else None
         if self.side_film_app.visible:
             value_side_film = self.side_film_app.value
@@ -181,7 +189,7 @@ class SheetMaterials(ft.UserControl):
             'quantity': self.quantity.value,
         }
         return data
-    
+
     def create_data_plastic(self):
         data_plastic = self.plastic_class.create_data_elems()
         if isinstance(data_plastic, dict):
@@ -195,27 +203,46 @@ class SheetMaterials(ft.UserControl):
         else:
             raise TypeError()
         return data_plastic
-        
-    def checking_entered_values(self, _event):
+
+    def checking_plastic_values(self):
         if self.plastic_class.name.visible:
-            checked_var = self.plastic_class.checking_values_elems()
+            return self.plastic_class.checking_values_elems()
         else:
-            checked_var = True
-        if self.material_color.visible:
-            if not self.material_color.value:
-                if not self.material_color.error_text:
-                    self.material_color.error_text = 'Введите цвет композита'
-                checked_var = False
+            return True
+
+    def checking_material_values(self):
+        if self.material_color.visible and not self.material_color.value:
+            if not self.material_color.error_text:
+                self.material_color.error_text = 'Введите цвет композита'
+            return False
+        return True
+
+    def checking_backlighting_cable_values(self):
         if self.backlighting_cable.visible and self.backlighting_cable.error_text:
-            checked_var = False
+            return False
+        return True
+
+    def checking_general_parameters(self):
         if self.height_sheet.error_text or self.width_sheet.error_text or self.quantity.error_text:
-            checked_var = False
+            return False
         else:
             for elem in [self.height_sheet, self.width_sheet, self.quantity]:
                 if not elem.value:
                     elem.error_text = 'Не может быть пустым'
-                    checked_var = False
-        
+                    return False
+        return True
+
+    def check_all_conditions(self):
+        checks = [
+            self.checking_plastic_values(),
+            self.checking_material_values(),
+            self.checking_backlighting_cable_values(),
+            self.checking_general_parameters()
+        ]
+        return all(checks)
+
+    def checking_entered_values(self, _event):
+        checked_var = self.check_all_conditions()
         if not checked_var:
             self.page.banner.open = True
             self.page.update()
@@ -237,26 +264,26 @@ class SheetMaterials(ft.UserControl):
             self.page.dialog.open = True
             self.page.update()
         self.update()
-        
+
     def visible_backlighting_param(self):
-        if self.backlighting.value != 'Не требуется':
+        if self.backlighting.value != self.not_required:
             if self.backlighting.value == 'Лайтбокс':
                 self.backlighting_lightbox_thickness.visible = True
             self.backlighting_color.visible = True
             self.backlighting_type_light.visible = True
             self.backlighting_cable.visible = True
-            
+
             self.backlighting_lightbox_thickness.value = None
             self.backlighting_cable.value = None
 
-            backlighting_data = DATA['Листовые материалы']['Световое исполнение']
-            
+            backlighting_data = self.data_backlighting
+
             backlighting_color_choices = list(backlighting_data['Цвет света'].keys())
             self.backlighting_color.options = [
                 ft.dropdown.Option(choice) for choice in backlighting_color_choices
             ]
             self.backlighting_color.value = backlighting_color_choices[0]
-            
+
             backlighting_type_choices = list(backlighting_data['Вид света'].keys())
             self.backlighting_type_light.options = [
                 ft.dropdown.Option(choice) for choice in backlighting_type_choices
@@ -271,7 +298,7 @@ class SheetMaterials(ft.UserControl):
             self.backlighting_color.visible = False
             self.backlighting_type_light.visible = False
             self.backlighting_cable.visible = False
-        
+
     def backlighting_func(self, _event):
         self.visible_backlighting_param()
         self.update()
@@ -279,19 +306,18 @@ class SheetMaterials(ft.UserControl):
     def checking_quantity(self, event):
         checking_quantity(event)
         self.update()
-        
+
     def color_mat_func(self, _event):
         self.material_color.error_text = ''
         if self.material.value == 'Композит' and self.material_type.value == 'Матовый':
             if not self.material_color.value:
                 self.material_color.error_text = 'Введите цвет композита'
         self.update()
-        
+
     def create_fields_material(self):
-        material_choices = list(DATA['Листовые материалы']['Материал'].keys())
-        material_choices.sort()
+        material_choices = list(self.data_material.keys())
         default_material = material_choices[0]
-    
+
         self.material = ft.Dropdown(
             label="Материал",
             options=[
@@ -302,7 +328,7 @@ class SheetMaterials(ft.UserControl):
             on_change=self.material_func,
             bgcolor=ft.colors.WHITE,
         )
-    
+
         self.material_type = ft.Dropdown(
             label="Вид материала",
             options=[],
@@ -312,7 +338,7 @@ class SheetMaterials(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             visible=False
         )
-    
+
         self.material_thickness = ft.Dropdown(
             label="Толщина",
             options=[],
@@ -320,7 +346,7 @@ class SheetMaterials(ft.UserControl):
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-    
+
         self.material_color = ft.TextField(
             label="Цвет материала",
             visible=False,
@@ -334,14 +360,14 @@ class SheetMaterials(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             visible=False
         )
-        
+
         return card(
-                'Материал',
-                [self.material, self.material_type, self.material_thickness, self.material_color, self.material_edge]
-            )
-    
+            'Материал',
+            [self.material, self.material_type, self.material_thickness, self.material_color, self.material_edge]
+        )
+
     def create_fields_process(self):
-        process_cutting_choices = list(DATA['Листовые материалы']['Обработка']['Вид резки'].keys())
+        process_cutting_choices = list(self.data_processing['Вид резки'].keys())
         self.proces_type_cutting = ft.Dropdown(
             label="Вид резки",
             options=[
@@ -351,8 +377,8 @@ class SheetMaterials(ft.UserControl):
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-    
-        process_film_choices = list(DATA['Листовые материалы']['Обработка']['Накатка пленки'].keys())
+
+        process_film_choices = list(self.data_processing['Накатка пленки'].keys())
         self.proces_rolling_film = ft.Dropdown(
             label="Накатка пленки",
             options=[
@@ -373,8 +399,8 @@ class SheetMaterials(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             visible=False
         )
-    
-        proces_holder_choices = list(DATA['Листовые материалы']['Обработка']['Держатель'].keys())
+
+        proces_holder_choices = list(self.data_processing['Держатель'].keys())
         self.proces_holder = ft.Dropdown(
             label="Держатель",
             options=[
@@ -385,17 +411,17 @@ class SheetMaterials(ft.UserControl):
             bgcolor=ft.colors.WHITE,
         )
         return card(
-                'Обработка',
-                [
-                    self.proces_type_cutting,
-                    self.proces_rolling_film,
-                    self.side_film_app,
-                    self.proces_holder
-                ]
-            )
-    
+            'Обработка',
+            [
+                self.proces_type_cutting,
+                self.proces_rolling_film,
+                self.side_film_app,
+                self.proces_holder
+            ]
+        )
+
     def create_fields_backlighting(self):
-        backlighting_data = DATA['Листовые материалы']['Световое исполнение']
+        backlighting_data = self.data_backlighting
         backlighting_choices = list(backlighting_data['Вид подсветки'].keys())
         self.backlighting = ft.Dropdown(
             label="Вид подсветки",
@@ -418,32 +444,32 @@ class SheetMaterials(ft.UserControl):
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-    
+
         self.backlighting_type_light = ft.Dropdown(
             label="Вид света",
             options=[],
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-    
+
         self.backlighting_cable = ft.TextField(
             label="Дополнительный провод",
             suffix_text="м",
             visible=False,
             on_change=self.checking_cable,
-            hint_text='Не требуется',
+            hint_text=self.not_required,
             counter_text='В комплекте уже есть пять метров'
         )
         return card(
-                'Световое исполнение',
-                [
-                    self.backlighting,
-                    self.backlighting_lightbox_thickness,
-                    self.backlighting_color,
-                    self.backlighting_type_light,
-                    self.backlighting_cable
-                ])
-    
+            'Световое исполнение',
+            [
+                self.backlighting,
+                self.backlighting_lightbox_thickness,
+                self.backlighting_color,
+                self.backlighting_type_light,
+                self.backlighting_cable
+            ])
+
     def create_fields_general_params(self):
         self.width_sheet = ft.TextField(
             label="Ширина",
@@ -487,40 +513,40 @@ class SheetMaterials(ft.UserControl):
             alignment=ft.MainAxisAlignment.CENTER,
         )
         return card(
-                'Общие параметры',
-                [self.width_sheet, self.height_sheet, self.quantity, ft.Divider(), content_files]
-            )
-    
+            'Общие параметры',
+            [self.width_sheet, self.height_sheet, self.quantity, ft.Divider(), content_files]
+        )
+
     def plastic_material_func(self, _event):
         self.plastic_class.visible_material_fields()
         self.update()
-        
+
     def plastic_color_material_func(self, _event):
         if self.plastic_class.color_material and self.plastic_class.color_material.value:
             self.plastic_class.color_material.error_text = ''
         self.update()
-        
+
     def plastic_processing_func(self, _event):
         self.plastic_class.visible_processing_fields()
         self.update()
-        
+
     def plastic_sampling_func(self, event):
         self.plastic_class.visible_sampling_func(event)
         self.update()
 
     def visible_side_film_app(self):
         type_value = self.material_type.value
-        if type_value and 'Прозрач' in type_value and self.proces_rolling_film.value != 'Не требуется':
+        if type_value and 'Прозрач' in type_value and self.proces_rolling_film.value != self.not_required:
             self.side_film_app.visible = True
         else:
             self.side_film_app.visible = False
-            
+
     def create_fields_plastic(self):
         self.plastic_class.name = ft.Row(
-                [ft.Text('Плёнка', size=25)],
-                alignment=ft.MainAxisAlignment.CENTER,
-                spacing=10,
-            )
+            [ft.Text('Плёнка', size=25)],
+            alignment=ft.MainAxisAlignment.CENTER,
+            spacing=10,
+        )
         self.plastic_class.divider_top = ft.Divider()
         self.plastic_class.divider_down = ft.Divider()
         column_plastic = [
@@ -539,13 +565,14 @@ class SheetMaterials(ft.UserControl):
         self.plastic_class.visible_processing_fields()
         self.plastic_class.visible_elems(False)
         return column_plastic
-    
+
     def plastic_func(self, _event):
-        check = bool(self.proces_rolling_film.value != 'Не требуется')
+        check = bool(self.proces_rolling_film.value != self.not_required)
+        plotter_name = 'Плоттер'
         if check:
-            if self.proces_rolling_film.value == 'Плоттер':
-                self.plastic_class.processing.options = [ft.dropdown.Option('Плоттер'), ]
-                self.plastic_class.processing.value = 'Плоттер'
+            if self.proces_rolling_film.value == plotter_name:
+                self.plastic_class.processing.options = [ft.dropdown.Option(plotter_name), ]
+                self.plastic_class.processing.value = plotter_name
             else:
                 self.plastic_class.processing.options = [ft.dropdown.Option('Резка с запасом'), ]
                 self.plastic_class.processing.value = 'Резка с запасом'
@@ -590,10 +617,9 @@ class SheetMaterials(ft.UserControl):
                 spacing=20,
                 scroll=ft.ScrollMode.AUTO,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER
-        
+
             ),
             padding=20,
             margin=10,
             width=500
         )
-    

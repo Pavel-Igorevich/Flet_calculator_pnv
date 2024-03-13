@@ -1,5 +1,5 @@
-from data import DATA
 from calculations.default_calc_func import square_calc, find_coefficient, amount_str
+from data import DATA
 
 DATA = DATA['Листовые материалы']
 
@@ -24,19 +24,19 @@ def processing_calc(data):
     prices_type_cut = DATA['Обработка']['Вид резки'][data['processing']['type_cut']]
     price_cut = prices_type_cut['Себестоимость']
     sale_price_cut = prices_type_cut['Продажа']
-    
+
     prices_holder = DATA['Обработка']['Держатель'][data['processing']['holder']]
     price_holder = prices_holder['Себестоимость']
     sale_price_holder = prices_holder['Продажа']
-    
+
     if data['processing']['rolling_film'] == "Не требуется" or not data['processing']['rolling_film']:
         coefficient_film = 1
     else:
         coefficient_film = 0.9
-        
+
     price = price_cut
     sale_price = sale_price_cut
-    
+
     if price_holder and sale_price_holder:
         price += price_holder
         sale_price += sale_price_holder
@@ -46,7 +46,7 @@ def processing_calc(data):
         sale_price_film = prices_film['Продажа']
         price += price_film
         sale_price += sale_price_film
-    
+
     return price, sale_price, coefficient_film
 
 
@@ -59,25 +59,25 @@ def backlighting_calc(data):
     price_type = prices_type['Себестоимость']
     sale_price_type = prices_type['Продажа']
     price, sale_price = price_type, sale_price_type
-    
+
     prices_color = light_data['Цвет света'][data['backlighting']['color']]
     price_color = prices_color['Себестоимость']
     sale_price_color = prices_color['Продажа']
     price += price_color
     sale_price += sale_price_color
-    
+
     # todo на что умножить
     prices_type_light = light_data['Вид света'][data['backlighting']['type_light']]
     price_type_light = prices_type_light['Себестоимость']
     sale_price_type_light = prices_type_light['Продажа']
     price += price_type_light
     sale_price += sale_price_type_light
-    
+
     if data['backlighting']['cable']:
         prices_cable = light_data['Дополнительный провод']
         price += prices_cable['Себестоимость'] * int(data['backlighting']['cable'])
         sale_price += prices_cable['Продажа'] * int(data['backlighting']['cable'])
-    
+
     return price, sale_price
 
 
@@ -122,9 +122,3 @@ def main_calc(data):
         data['main_sale_price'] = data['sheet_main_sale_price']
 
     return data
-    
-    
-    
-    
-    
-    

@@ -1,5 +1,5 @@
-from data import DATA
 from calculations.default_calc_func import perimeter_calc, square_calc, find_coefficient, amount_str
+from data import DATA
 
 DATA_BANNER = DATA['Баннер']
 
@@ -52,14 +52,14 @@ def main_calc(data):
     quantity = int(data['quantity'])
     perimeter = perimeter_calc(height, width)
     square = square_calc(height, width)
-    
+
     price_material, sale_price_material, material_name = material_calc(
         quality=data['material']['print_quality'],
         material=data['material']['name'],
     )
-    
+
     material_consumption = round(square * quantity, 2)
-    
+
     price_processing, sale_price_processing, process_material, len_processing_sides = processing_calc(
         welding_step=data['processing']['welding_step'],
         processing=data['processing']['type'],
@@ -88,7 +88,7 @@ def main_calc(data):
             process_consumption = round(perimeter * quantity, 2)
         else:
             process_consumption = None
-            
+
     data['material']['full_name'] = material_name
     data['material']['price'] = amount_str(price_material)
     data['material']['sale_price'] = amount_str(sale_price_material)
@@ -97,12 +97,12 @@ def main_calc(data):
     data['processing']['price'] = amount_str(price_processing)
     data['processing']['sale_price'] = amount_str(sale_price_processing)
     data['processing']['consumption'] = process_consumption
-    
+
     data['height'] = height
     data['width'] = width
     data['size'] = square
     data['coefficient'] = coefficient
     data['main_price'] = amount_str(main_price)
     data['main_sale_price'] = amount_str(main_sale_price)
-    
+
     return data

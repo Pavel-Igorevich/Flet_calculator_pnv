@@ -3,14 +3,14 @@ import flet as ft
 
 def process_and_replace_keys(dictionary):
     keys_to_remove = [key for key in dictionary.keys() if isinstance(key, str) and key.startswith('_')]
-    
+
     for key in keys_to_remove:
         del dictionary[key]
-    
+
     for key, value in dictionary.items():
         if isinstance(value, dict):
             process_and_replace_keys(value)
-    
+
     # Замена ключей 'null' на None
     if 'null' in dictionary:
         dictionary[None] = dictionary.pop('null')
@@ -23,8 +23,8 @@ def checking_size(event):
         event.control.error_text = 'Размер задается целым числом от 10'
     else:
         event.control.error_text = ''
-        
-        
+
+
 def checking_quantity(event):
     if not event.control.value:
         event.control.error_text = 'Не может быть пустым'
@@ -65,7 +65,7 @@ def card_result(part_content, name_card=None):
                 size=15,
             ),
         )
-        
+
     card_content = ft.Card(
         content=ft.Container(
             width=1000,
@@ -81,4 +81,3 @@ def card_result(part_content, name_card=None):
         return name_card, card_content
     else:
         return card_content
-        
