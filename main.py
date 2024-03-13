@@ -222,5 +222,5 @@ def run_app(page: ft.Page):
 
 
 if __name__ == '__main__':
-    ft.app(run_app, view=ft.AppView.WEB_BROWSER, port=8080)
-    # ft.app(run_app, upload_dir="files")
+    # ft.app(run_app, view=ft.AppView.WEB_BROWSER, port=8080)
+    ft.app(run_app, upload_dir="files")
