@@ -1,7 +1,7 @@
 from calculations.default_calc_func import perimeter_calc, square_calc, find_coefficient, amount_str
-from data import DATA
+from data import MAIN_DATA
 
-DATA_CANVAS = DATA['Холст']
+DATA_CANVAS = MAIN_DATA['Холст']
 
 
 def main_calc(data):
@@ -35,7 +35,7 @@ def main_calc(data):
     if process_material:
         process_consumption = round(perimeter * quantity, 2)
 
-    material = DATA['Холст']['Обработка'][data_processing].get('Материал')
+    material = MAIN_DATA['Холст']['Обработка'][data_processing].get('Материал')
     data['processing']['material'] = material
 
     data['material']['full_name'] = material_name

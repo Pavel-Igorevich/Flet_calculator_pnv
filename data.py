@@ -10,4 +10,4 @@ def load_json_file(file_path):
     return data
 
 
-DATA = load_json_file('data.json')
+MAIN_DATA = load_json_file('data.json')

@@ -4,7 +4,7 @@ from banner.banner_gui import BannerGUI
 from canvas.canvas_gui import CanvasGUI
 from orders.orders_gui import OrdersGUI
 from plastic.plastic_gui import PlasticGUI
-from press_wall.press_wall_gui import PressWallGUI
+from construction.construction_gui import ConstructionsGUI
 from sheet_materials.sheet_materials_gui import SheetMaterialsGUI
 
 
@@ -150,7 +150,7 @@ class MainMenu:
                 self.coefficient
             )
         elif index == 5:
-            self.enable_user_control = PressWallGUI(
+            self.enable_user_control = ConstructionsGUI(
                 self.page,
                 self.main_price,
                 self.main_sale_price,
@@ -196,7 +196,7 @@ class MainMenu:
                     label="Холст",
                 ),
                 ft.NavigationDrawerDestination(
-                    label="Пресс-Волл",
+                    label="Конструкции",
                 ),
             ],
             on_change=self.test,

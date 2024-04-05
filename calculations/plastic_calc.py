@@ -1,7 +1,7 @@
 from calculations.default_calc_func import perimeter_calc, square_calc, find_coefficient, amount_str
-from data import DATA
+from data import MAIN_DATA
 
-DATA_PLASTIC = DATA['Плёнка']
+DATA_PLASTIC = MAIN_DATA['Плёнка']
 
 
 def material_calc(material):

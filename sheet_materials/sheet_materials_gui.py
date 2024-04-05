@@ -4,16 +4,16 @@ import flet as ft
 
 from calculations.plastic_calc import main_calc as plastic_calc
 from calculations.sheet_materials_calc import main_calc
-from data import DATA
+from data import MAIN_DATA
 from list_orders import ORDERS
-from other_func import card, checking_size, checking_quantity
+from other_func import card, checking_size, checking_quantity, load_files, create_general_params
 from plastic.plastic_gui import PlasticElements
 from sheet_materials.result_gui import result_content
 
 
 class SheetMaterials:
     not_required = 'Не требуется'
-    data = DATA['Листовые материалы']
+    data = MAIN_DATA['Листовые материалы']
 
     def __init__(self):
         self.material = None
@@ -37,9 +37,6 @@ class SheetMaterials:
 
         self.plastic_class = PlasticElements()
         self.side_film_app = None
-
-        self.load_file_btn = None
-        self.load_file_text = None
 
     def visible_type_mat(self):
         material_data = self.data_material[self.material.value]
@@ -433,7 +430,7 @@ class SheetMaterials:
         self.plastic_class.visible_elems(check)
         self.visible_side_film_app()
 
-    def create_fields(self, fields_general_params=None):
+    def create_fields(self, fields_general_params=None, btn_send=True):
         column_controls = [
             ft.Row(
                 [ft.Text('Листовые материалы', size=25)],
@@ -448,14 +445,15 @@ class SheetMaterials:
         column_controls.extend(column_plastic)
         if fields_general_params:
             column_controls.append(fields_general_params)
-        self.button_send = ft.ElevatedButton(
-            'Рассчитать',
-            style=ft.ButtonStyle(
-                padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK
-            ),
+        if btn_send:
+            self.button_send = ft.ElevatedButton(
+                'Рассчитать',
+                style=ft.ButtonStyle(
+                    padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK
+                ),
 
-        )
-        column_controls.append(self.button_send)
+            )
+            column_controls.append(self.button_send)
         self.visible_backlighting_param()
         self.visible_type_mat()
         self.visible_thickness_color_mat()
@@ -471,8 +469,12 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
         self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
         self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
         self.page.overlay.append(self.pick_files_dialog)
+        self.width_sheet, self.height_sheet, self.quantity = None, None, None
         self.page.update()
         self.upload_files = []
+
+        self.load_file_btn = None
+        self.load_file_text = None
 
     def material_func(self, _event):
         self.material_events()
@@ -540,20 +542,10 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
         self.create_on_change_backlighting_events()
         self.create_on_change_plastic_events()
         self.proces_rolling_film.on_change = self.plastic_func
-        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(allow_multiple=True)
         self.button_send.on_click = self.checking_entered_values
 
     def load_file(self, e: ft.FilePickerResultEvent):
-        if not e.files:
-            self.load_file_text.value = ''
-            self.upload_files = []
-        else:
-            self.load_file_text.value = ", ".join(map(lambda f: f.name, e.files))
-            # todo реализация только для пк, потом переделать
-            for num, file in enumerate(e.files):
-                self.upload_files.append(
-                    [f"Макет_Листовых_материалов_{num}.{file.name.split('.')[-1]}", file.path]
-                )
+        self.load_file_text.value, self.upload_files = load_files(e, "Макет_Листовых_материалов")
         self.update()
 
     def checking_size(self, event):
@@ -565,32 +557,12 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
         self.update()
 
     def create_fields_general_params(self):
-        self.width_sheet = ft.TextField(
-            label="Ширина",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.height_sheet = ft.TextField(
-            label="Высота",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.quantity = ft.TextField(
-            label="Количество",
-            suffix_text="шт.",
-            on_change=self.checking_quantity,
-        )
-        self.load_file_text = ft.TextField(
-            label="Файлы макета",
-            read_only=True,
-            col={'xs': 12, 'sm': 10}
-        )
-        self.load_file_btn = ft.IconButton(
-            icon=ft.icons.UPLOAD_FILE,
-            style=ft.ButtonStyle(
-                bgcolor=ft.colors.AMBER, color=ft.colors.BLACK, padding=10
-            ),
-        )
+        self.width_sheet, self.height_sheet, self.quantity, self.load_file_text, self.load_file_btn = (
+            create_general_params())
+        self.width_sheet.on_change = self.checking_size
+        self.height_sheet.on_change = self.checking_size
+        self.quantity.on_change = self.checking_quantity
+        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(allow_multiple=True)
         content_files = ft.ResponsiveRow(
             [
                 self.load_file_text,
@@ -609,14 +581,15 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
         )
 
     def checking_general_parameters(self):
+        checked_var = True
         if self.height_sheet.error_text or self.width_sheet.error_text or self.quantity.error_text:
-            return False
+            checked_var = False
         else:
             for elem in [self.height_sheet, self.width_sheet, self.quantity]:
                 if not elem.value:
                     elem.error_text = 'Не может быть пустым'
-                    return False
-        return True
+                    checked_var = False
+        return checked_var
 
     def check_all_conditions(self):
         checks = [

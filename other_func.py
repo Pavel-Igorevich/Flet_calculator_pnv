@@ -81,3 +81,44 @@ def card_result(part_content, name_card=None):
         return name_card, card_content
     else:
         return card_content
+
+
+def load_files(e: ft.FilePickerResultEvent, layout_name):
+    upload_files = []
+    if not e.files:
+        load_file_text = ''
+    else:
+        load_file_text = ", ".join(map(lambda f: f.name, e.files))
+        # todo реализация только для пк, потом переделать
+        for num, file in enumerate(e.files):
+            upload_files.append(
+                [f"{layout_name}_{num}.{file.name.split('.')[-1]}", file.path]
+            )
+    return load_file_text, upload_files
+
+
+def create_general_params():
+    width = ft.TextField(
+        label="Ширина",
+        suffix_text="мм",
+    )
+    height = ft.TextField(
+        label="Высота",
+        suffix_text="мм",
+    )
+    quantity = ft.TextField(
+        label="Количество",
+        suffix_text="шт.",
+    )
+    load_file_text = ft.TextField(
+        label="Файлы макета",
+        read_only=True,
+        col={'xs': 12, 'sm': 10}
+    )
+    load_file_btn = ft.IconButton(
+        icon=ft.icons.UPLOAD_FILE,
+        style=ft.ButtonStyle(
+            bgcolor=ft.colors.AMBER, color=ft.colors.BLACK, padding=10
+        )
+    )
+    return width, height, quantity, load_file_text, load_file_btn

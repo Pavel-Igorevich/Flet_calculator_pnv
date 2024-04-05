@@ -1,17 +1,18 @@
 from calculations.default_calc_func import square_calc, find_coefficient, amount_str
-from data import DATA
+from data import MAIN_DATA
 
-DATA = DATA['Листовые материалы']
+DATA = MAIN_DATA['Листовые материалы']
 
 
 def material_calc(data):
     name_mat = data['material']['name']
     type_mat = data['material']['type']
     thickness_mat = data['material']['thickness']
-    if DATA['Материал'][name_mat]['Вид'].get(type_mat):
-        prices = DATA['Материал'][name_mat]['Вид'][type_mat]['Толщина'][thickness_mat]
+    material_name = DATA['Материал']
+    if material_name[name_mat]['Вид'].get(type_mat):
+        prices = material_name[name_mat]['Вид'][type_mat]['Толщина'][thickness_mat]
     else:
-        prices = DATA['Материал'][name_mat]['Вид'][None]['Толщина'][thickness_mat]
+        prices = material_name[name_mat]['Вид'][None]['Толщина'][thickness_mat]
     price = prices['Себестоимость']
     sale_price = prices['Продажа']
     if name_mat == 'ЛДСП' and data['material']['edge'] == 'Добавить':
@@ -21,11 +22,12 @@ def material_calc(data):
 
 
 def processing_calc(data):
-    prices_type_cut = DATA['Обработка']['Вид резки'][data['processing']['type_cut']]
+    processing_name = DATA['Обработка']
+    prices_type_cut = processing_name['Вид резки'][data['processing']['type_cut']]
     price_cut = prices_type_cut['Себестоимость']
     sale_price_cut = prices_type_cut['Продажа']
 
-    prices_holder = DATA['Обработка']['Держатель'][data['processing']['holder']]
+    prices_holder = processing_name['Держатель'][data['processing']['holder']]
     price_holder = prices_holder['Себестоимость']
     sale_price_holder = prices_holder['Продажа']
 
@@ -66,7 +68,6 @@ def backlighting_calc(data):
     price += price_color
     sale_price += sale_price_color
 
-    # todo на что умножить
     prices_type_light = light_data['Вид света'][data['backlighting']['type_light']]
     price_type_light = prices_type_light['Себестоимость']
     sale_price_type_light = prices_type_light['Продажа']

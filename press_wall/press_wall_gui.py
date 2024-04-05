@@ -1,7 +1,7 @@
 import flet as ft
 
-from data import DATA
-from other_func import card, checking_size, checking_quantity
+from data import MAIN_DATA
+from other_func import card, checking_size, checking_quantity, load_files
 
 
 class PressWallGUI(ft.UserControl):
@@ -38,20 +38,11 @@ class PressWallGUI(ft.UserControl):
         self.update()
 
     def load_file(self, e: ft.FilePickerResultEvent):
-        if not e.files:
-            self.load_file_text.value = ''
-            self.upload_files = []
-        else:
-            self.load_file_text.value = ", ".join(map(lambda f: f.name, e.files))
-            # todo реализация только для пк, потом переделать
-            for num, file in enumerate(e.files):
-                self.upload_files.append(
-                    [f"Макет_Холста_{num}.{file.name.split('.')[-1]}", file.path]
-                )
+        self.load_file_text.value, self.upload_files = load_files(e, "Макет_Холста")
         self.update()
 
     def visible_material(self):
-        skeleton_data = DATA['Пресс-Волл']['Вид каркаса']
+        skeleton_data = MAIN_DATA['Пресс-Волл']['Вид каркаса']
         if self.skeleton.value in skeleton_data:
             overhead_data = skeleton_data[self.skeleton.value]["Накладные элементы"]
             if overhead_data:
@@ -78,7 +69,7 @@ class PressWallGUI(ft.UserControl):
         self.update()
 
     def create_fields(self):
-        skeleton_choices = list(DATA['Пресс-Волл']['Вид каркаса'].keys())
+        skeleton_choices = list(MAIN_DATA['Пресс-Волл']['Вид каркаса'].keys())
 
         self.skeleton = ft.Dropdown(
             label="Каркас",
@@ -99,7 +90,7 @@ class PressWallGUI(ft.UserControl):
             visible=False
         )
 
-        side_choices = DATA['Пресс-Волл']['Вторая сторона']
+        side_choices = MAIN_DATA['Пресс-Волл']['Вторая сторона']
         self.second_side = ft.Dropdown(
             label="Вторая сторона",
             options=[
@@ -110,7 +101,7 @@ class PressWallGUI(ft.UserControl):
             bgcolor=ft.colors.WHITE,
         )
 
-        print_choices = DATA['Пресс-Волл']['Качество печати']
+        print_choices = MAIN_DATA['Пресс-Волл']['Качество печати']
         self.print_quality = ft.Dropdown(
             label="Качество печати",
             options=[
@@ -138,7 +129,7 @@ class PressWallGUI(ft.UserControl):
             ),
         ]
 
-        exploitation_choices = list(DATA['Пресс-Волл']['Место эксплуатации'].keys())
+        exploitation_choices = list(MAIN_DATA['Пресс-Волл']['Место эксплуатации'].keys())
         self.exploitation = ft.Dropdown(
             label="Место эксплуатации",
             options=[

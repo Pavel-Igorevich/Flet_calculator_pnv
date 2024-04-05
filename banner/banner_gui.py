@@ -1,74 +1,63 @@
 from datetime import datetime
-
 import flet as ft
 
 from banner.result_gui import result_content
 from calculations.banner_calc import main_calc
-from data import DATA
+from data import MAIN_DATA
 from list_orders import ORDERS
-from other_func import card, checking_size, checking_quantity
+from other_func import card, checking_size, checking_quantity, load_files, create_general_params
 
 
-# from icecream import ic
+class Banner:
+    def __init__(self):
+        self.data = MAIN_DATA['Баннер']
+        self.data_material = self.data["Материал"]
+        self.data_processing = self.data['Обработка']
 
-
-class BannerGUI(ft.UserControl):
-
-    def __init__(self, page, main_price, main_sale_price, coefficient):
-        super().__init__()
-        self.page = page
-        self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
-        self.material = None
-        self.processing = None
-        self.print_quality = None
-        self.height_banner = None
-        self.width_banner = None
-        self.quantity = None
+        self.material, self.print_quality = None, None
+        self.processing, self.welding_step, self.text_side, self.error_message_sides = None, None, None, None
+        self.row_sides_icon = None
+        self.side_data = None
         self.button_send = None
-        self.welding_step = None
-        self.sides_processing = None
-        self.left_side = None
-        self.right_side = None
-        self.top_side = None
-        self.bottom_side = None
-        self.all_sides = None
-        self.corners = None
-        self.text_side = None
-        self.error_message_sides = None
-        self.result_modal = None
 
-        self.load_file_btn = None
-        self.load_file_text = None
-        self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
-        self.page.overlay.append(self.pick_files_dialog)
-        self.page.update()
-        self.upload_files = []
-
-        self.sides_icons = {
-            'Левая': ft.icons.BORDER_LEFT,
-            'Правая': ft.icons.BORDER_RIGHT,
-            'Верх': ft.icons.BORDER_TOP,
-            'Низ': ft.icons.BORDER_BOTTOM,
-            'Все стороны': ft.icons.BORDER_OUTER,
-            'По углам': ft.icons.ALL_OUT,
+    @staticmethod
+    def create_side_data():
+        return {
+            "Левая": {
+                'obj': None,
+                'icon': ft.icons.BORDER_LEFT
+            },
+            "Правая": {
+                'obj': None,
+                'icon': ft.icons.BORDER_RIGHT
+            },
+            "Верх": {
+                'obj': None,
+                'icon': ft.icons.BORDER_TOP
+            },
+            "Низ": {
+                'obj': None,
+                'icon': ft.icons.BORDER_BOTTOM
+            },
+            "Все стороны": {
+                'obj': None,
+                'icon': ft.icons.BORDER_OUTER
+            },
+            "По углам": {
+                'obj': None,
+                'icon': ft.icons.ALL_OUT
+            }
         }
 
-    def load_file(self, e: ft.FilePickerResultEvent):
-        if not e.files:
-            self.load_file_text.value = ''
-            self.upload_files = []
-        else:
-            self.load_file_text.value = ", ".join(map(lambda f: f.name, e.files))
-            # todo реализация только для пк, потом переделать
-            for num, file in enumerate(e.files):
-                self.upload_files.append(
-                    [f"Макет_Баннера_{num}.{file.name.split('.')[-1]}", file.path]
-                )
-        self.update()
+    def material_events(self):
+        list_choices = list(self.data_material[self.material.value]['Качество печати'].keys())
+        self.print_quality.options = [ft.dropdown.Option(quality) for quality in list_choices]
+        self.print_quality.value = list_choices[0]
 
     def visible_welding_step(self):
-        if DATA['Баннер']['Обработка'][self.processing.value].get('Шаг сварки'):
-            steps = list(DATA['Баннер']['Обработка'][self.processing.value]['Шаг сварки'].keys())
+        step = self.data_processing[self.processing.value].get('Шаг сварки')
+        if step:
+            steps = list(step.keys())
             self.welding_step.options = [ft.dropdown.Option(step) for step in steps]
             self.welding_step.value = steps[0]
             self.welding_step.visible = True
@@ -77,114 +66,34 @@ class BannerGUI(ft.UserControl):
             self.welding_step.visible = False
 
     def visible_sides(self):
-        side_mapping = self.generate_side_mapping()
         if self.processing:
-            sides = DATA['Баннер']['Обработка'][self.processing.value].get('Сторона')
+            sides = self.data_processing[self.processing.value].get('Сторона')
         else:
             sides = None
 
         if sides:
             self.text_side.visible = True
-            for name_side in self.sides_icons.keys():
+            self.row_sides_icon.visible = True
+            for name_side in self.side_data.keys():
                 check = False
                 if name_side in sides:
                     check = True
-                if name_side in side_mapping:
-                    side_mapping[name_side].visible = check
+                self.side_data[name_side]['obj'].visible = check
         else:
-            for side in side_mapping.values():
-                side.visible = False
+            for side_data in self.side_data.values():
+                side_data['obj'].visible = False
             self.text_side.visible = False
+            self.row_sides_icon.visible = False
             self.error_message_sides.visible = False
 
-    def processing_func(self, _event):
+    def processing_events(self):
         self.visible_welding_step()
         self.visible_sides()
-        self.update()
 
-    def material_func(self, event):
-        list_choices = list(DATA['Баннер']['Материал'][event.control.value]['Качество печати'].keys())
-        self.print_quality.options = [ft.dropdown.Option(quality) for quality in list_choices]
-        self.print_quality.value = list_choices[0]
-        self.update()
-
-    def create_sides_processing(self):
-        side_attributes = {
-            'Левая': 'left_side',
-            'Правая': 'right_side',
-            'Верх': 'top_side',
-            'Низ': 'bottom_side',
-            'Все стороны': 'all_sides',
-            'По углам': 'corners',
-        }
-
-        elems = []
-
-        for name_side, icon in self.sides_icons.items():
-            side = ft.Chip(
-                label=ft.Icon(icon, size=20),
-                selected_color=ft.colors.GREEN_200,
-                col={"xs": 6, 'sm': 2},
-                on_select=self.chip_event_func,
-                tooltip=name_side,
-                visible=False
-            )
-            setattr(self, side_attributes.get(name_side, name_side), side)
-            elems.append(side)
-        return ft.ResponsiveRow(elems, alignment=ft.MainAxisAlignment.CENTER)
-
-    def chip_event_func(self, event):
-        side_mapping = self.generate_side_mapping()
-        if event.control.tooltip in ('Все стороны', 'По углам'):
-            for side, var_side in side_mapping.items():
-                if side != event.control.tooltip and var_side.selected:
-                    var_side.selected = False
-        else:
-            list_sides = ['Левая', 'Правая', 'Верх', 'Низ']
-            if all([side_mapping[side].selected for side in list_sides]):
-                for side in list_sides:
-                    side_mapping[side].selected = False
-                self.all_sides.selected = True
-            else:
-                for side in ('Все стороны', 'По углам'):
-                    if side_mapping[side].selected:
-                        side_mapping[side].selected = False
-        if any([side_mapping[name_side].selected for name_side in side_mapping]):
-            self.error_message_sides.visible = False
-        self.update()
-
-    def generate_side_mapping(self) -> dict:
-        return {
-            'Левая': self.left_side,
-            'Правая': self.right_side,
-            'Верх': self.top_side,
-            'Низ': self.bottom_side,
-            'Все стороны': self.all_sides,
-            'По углам': self.corners,
-        }
-
-    def checking_size(self, event):
-        checking_size(event)
-        self.update()
-
-    def checking_quantity(self, event):
-        checking_quantity(event)
-        self.update()
-
-    def create_fields(self):
-        column_controls = []
-        material_choices = list(DATA['Баннер']['Материал'].keys())
-        processing_choices = list(DATA['Баннер']['Обработка'].keys())
+    def create_fields_material(self):
+        material_choices = list(self.data_material.keys())
         default_material = material_choices[0]
-        print_quality_choices = list(DATA['Баннер']['Материал'][default_material]['Качество печати'].keys())
-
-        column_controls.append(
-            ft.Row(
-                [ft.Text('Баннер', size=25)],
-                alignment=ft.MainAxisAlignment.CENTER,
-                spacing=10
-            )
-        )
+        print_quality_choices = list(self.data_material[default_material]['Качество печати'].keys())
 
         self.material = ft.Dropdown(
             label="Материал баннера",
@@ -193,7 +102,6 @@ class BannerGUI(ft.UserControl):
             ],
             value=material_choices[0],
             alignment=ft.alignment.center,
-            on_change=self.material_func,
             bgcolor=ft.colors.WHITE,
         )
         self.print_quality = ft.Dropdown(
@@ -205,7 +113,46 @@ class BannerGUI(ft.UserControl):
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
         )
-        column_controls.append(card('Материал', [self.material, self.print_quality]))
+        return card('Материал', [self.material, self.print_quality])
+
+    def remove_selection_side(self):
+        for data in self.side_data.values():
+            if data['obj'].selected:
+                data['obj'].selected = False
+
+    def chip_event_events(self, event):
+        if event.control.tooltip in ('Все стороны', 'По углам'):
+            self.remove_selection_side()
+            self.side_data[event.control.tooltip]['obj'].selected = True
+        else:
+            list_sides = ['Левая', 'Правая', 'Верх', 'Низ']
+            if all([self.side_data[side]['obj'].selected for side in list_sides]):
+                self.remove_selection_side()
+                self.side_data["Все стороны"]['obj'].selected = True
+            else:
+                for side in ('Все стороны', 'По углам'):
+                    if self.side_data[side]['obj'].selected:
+                        self.side_data[side]['obj'].selected = False
+        if any([data['obj'].selected for data in self.side_data.values()]):
+            self.error_message_sides.visible = False
+
+    def create_sides_processing(self):
+        elems = []
+        for label, data in self.side_data.items():
+            data['obj'] = ft.Chip(
+                label=ft.Icon(data['icon'], size=20),
+                selected_color=ft.colors.GREEN_200,
+                col={"xs": 6, 'sm': 2},
+                tooltip=label,
+                visible=False
+            )
+            elems.append(data['obj'])
+        self.row_sides_icon = ft.ResponsiveRow(elems, alignment=ft.MainAxisAlignment.CENTER, visible=False)
+
+    def create_fields_processing(self):
+        processing_choices = list(self.data_processing.keys())
+        self.side_data = self.create_side_data()
+        self.create_sides_processing()
 
         self.processing = ft.Dropdown(
             label="Обработка",
@@ -215,7 +162,6 @@ class BannerGUI(ft.UserControl):
             value=processing_choices[0],
             alignment=ft.alignment.center,
             bgcolor=ft.colors.WHITE,
-            on_change=self.processing_func,
         )
         self.welding_step = ft.Dropdown(
             label="Шаг сварки",
@@ -234,48 +180,83 @@ class BannerGUI(ft.UserControl):
             visible=False
         )
 
-        column_controls.append(
-            card(
-                'Обработка',
-                [
-                    self.processing,
-                    self.welding_step,
-                    self.text_side,
-                    self.error_message_sides,
-                    self.create_sides_processing()
-                ]
-            )
-        )
-        self.width_banner = ft.TextField(
-            label="Ширина",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.height_banner = ft.TextField(
-            label="Высота",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.quantity = ft.TextField(
-            label="Количество",
-            suffix_text="шт.",
-            on_change=self.checking_quantity,
+        return card(
+            'Обработка',
+            [
+                self.processing,
+                self.welding_step,
+                self.text_side,
+                self.error_message_sides,
+                self.row_sides_icon
+            ]
         )
 
-        self.load_file_text = ft.TextField(
-            label="Файлы макета",
-            read_only=True,
-            col={'xs': 12, 'sm': 10}
-        )
-        self.load_file_btn = ft.IconButton(
-            icon=ft.icons.UPLOAD_FILE,
-            style=ft.ButtonStyle(
-                bgcolor=ft.colors.AMBER, color=ft.colors.BLACK, padding=10
+    def create_fields(self, fields_general_params=None, btn_send=True):
+        column_controls = [
+            ft.Row(
+                [ft.Text('Баннер', size=25)],
+                alignment=ft.MainAxisAlignment.CENTER,
+                spacing=10
             ),
-            on_click=lambda _: self.pick_files_dialog.pick_files(
-                allow_multiple=True
-            ),
+            self.create_fields_material(),
+            self.create_fields_processing()
+        ]
+        if fields_general_params:
+            column_controls.append(fields_general_params)
+        if btn_send:
+            self.button_send = ft.ElevatedButton(
+                'Рассчитать',
+                style=ft.ButtonStyle(
+                    padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK
+                ),
+            )
+            column_controls.append(self.button_send)
+        self.visible_sides()
+        self.visible_welding_step()
+        return column_controls
+
+
+class BannerGUI(ft.UserControl, Banner):
+
+    def __init__(self, page, main_price, main_sale_price, coefficient):
+        super().__init__()
+        self.page = page
+        self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
+        self.height_banner = None
+        self.width_banner = None
+        self.quantity = None
+        self.result_modal = None
+        self.pick_files_dialog = ft.FilePicker(on_result=self.load_file)
+        self.page.overlay.append(self.pick_files_dialog)
+        self.page.update()
+        self.upload_files = []
+
+        self.load_file_btn = None
+        self.load_file_text = None
+
+    def load_file(self, e: ft.FilePickerResultEvent):
+        self.load_file_text.value, self.upload_files = load_files(e, "Макет_Баннера")
+        self.update()
+
+    def checking_size(self, event):
+        checking_size(event)
+        self.update()
+
+    def checking_quantity(self, event):
+        checking_quantity(event)
+        self.update()
+
+    def create_fields_general_params(self):
+        self.width_banner, self.height_banner, self.quantity, self.load_file_text, self.load_file_btn = (
+            create_general_params()
         )
+        self.width_banner.on_change = self.checking_size
+        self.height_banner.on_change = self.checking_size
+        self.quantity.on_change = self.checking_quantity
+        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(
+            allow_multiple=True
+        )
+
         content_files = ft.ResponsiveRow(
             [
                 self.load_file_text,
@@ -289,22 +270,29 @@ class BannerGUI(ft.UserControl):
             alignment=ft.MainAxisAlignment.CENTER
 
         )
-        column_controls.append(
-            card(
-                'Общие параметры',
-                [self.width_banner, self.height_banner, self.quantity, ft.Divider(), content_files]))
-
-        self.button_send = ft.ElevatedButton(
-            'Рассчитать',
-            style=ft.ButtonStyle(
-                padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK
-            ),
-            on_click=self.checking_entered_values
+        return card(
+            'Общие параметры',
+            [self.width_banner, self.height_banner, self.quantity, ft.Divider(), content_files]
         )
-        column_controls.append(self.button_send)
-        self.visible_sides()
-        self.visible_welding_step()
-        return column_controls
+
+    def material_func(self, event):
+        self.material_events(event)
+        self.update()
+
+    def processing_func(self, _event):
+        self.processing_events()
+        self.update()
+
+    def chip_event_func(self, event):
+        self.chip_event_events(event)
+        self.update()
+
+    def create_on_change_events(self):
+        self.material.on_change = self.material_func
+        self.processing.on_change = self.processing_func
+        self.button_send.on_click = self.checking_entered_values
+        for data in self.side_data.values():
+            data['obj'].on_select = self.chip_event_func
 
     def create_data(self):
         data = {
@@ -320,19 +308,18 @@ class BannerGUI(ft.UserControl):
             'quantity': self.quantity.value,
             'files': self.upload_files
         }
-        if DATA['Баннер']['Обработка'][self.processing.value].get('Сторона'):
-            data_sides = self.generate_side_mapping()
-            processing_sides = [side for side, value in data_sides.items() if value.selected]
+        if self.data_processing[self.processing.value].get('Сторона'):
+            processing_sides = [name_side for name_side, data in self.side_data.items() if data['obj'].selected]
             data['processing']['sides'] = ', '.join(processing_sides)
         else:
             data['processing']['sides'] = None
 
-        if DATA['Баннер']['Обработка'][self.processing.value].get('Шаг сварки'):
+        if self.data_processing[self.processing.value].get('Шаг сварки'):
             data['processing']['welding_step'] = self.welding_step.value
         else:
             data['processing']['welding_step'] = None
 
-        material = DATA['Баннер']['Обработка'][self.processing.value].get('Материал')
+        material = self.data_processing[self.processing.value].get('Материал')
         data['processing']['material'] = material
 
         return data
@@ -344,8 +331,7 @@ class BannerGUI(ft.UserControl):
             self.page.update()
 
         if self.text_side.visible:
-            side_mapping = self.generate_side_mapping()
-            if not any([side_mapping[name_side].selected for name_side in side_mapping]):
+            if not any([data['obj'].selected for data in self.side_data.values()]):
                 self.error_message_sides.visible = True
                 checked_var = False
         if self.height_banner.error_text or self.width_banner.error_text or self.quantity.error_text:
@@ -372,10 +358,13 @@ class BannerGUI(ft.UserControl):
         self.update()
 
     def build(self):
-        self.create_fields()
+        fields = self.create_fields(
+            fields_general_params=self.create_fields_general_params()
+        )
+        self.create_on_change_events()
         return ft.Container(
             content=ft.Column(
-                controls=self.create_fields(),
+                controls=fields,
                 spacing=20,
                 scroll=ft.ScrollMode.AUTO,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER

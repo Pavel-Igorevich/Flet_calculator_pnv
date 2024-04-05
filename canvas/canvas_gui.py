@@ -4,13 +4,13 @@ import flet as ft
 
 from calculations.canvas_calc import main_calc
 from canvas.result_gui import result_content
-from data import DATA
+from data import MAIN_DATA
 from list_orders import ORDERS
-from other_func import card, checking_size, checking_quantity
+from other_func import card, checking_size, checking_quantity, load_files
 
 
 class CanvasGUI(ft.UserControl):
-    DATA = DATA['Холст']
+    DATA = MAIN_DATA['Холст']
 
     def __init__(self, page, main_price, main_sale_price, coefficient):
         super().__init__()
@@ -40,20 +40,11 @@ class CanvasGUI(ft.UserControl):
         self.update()
 
     def load_file(self, e: ft.FilePickerResultEvent):
-        if not e.files:
-            self.load_file_text.value = ''
-            self.upload_files = []
-        else:
-            self.load_file_text.value = ", ".join(map(lambda f: f.name, e.files))
-            # todo реализация только для пк, потом переделать
-            for num, file in enumerate(e.files):
-                self.upload_files.append(
-                    [f"Макет_Холста_{num}.{file.name.split('.')[-1]}", file.path]
-                )
+        self.load_file_text.value, self.upload_files = load_files(e, "Макет_Холста")
         self.update()
 
     def create_fields(self):
-        material_choices = list(DATA['Материал'].keys())
+        material_choices = list(self.DATA['Материал'].keys())
 
         self.material = ft.Dropdown(
             label="Материал холста",
@@ -65,7 +56,7 @@ class CanvasGUI(ft.UserControl):
             bgcolor=ft.colors.WHITE,
         )
 
-        processing_choices = list(DATA['Обработка'].keys())
+        processing_choices = list(self.DATA['Обработка'].keys())
 
         self.processing = ft.Dropdown(
             label="Вид обработки",
