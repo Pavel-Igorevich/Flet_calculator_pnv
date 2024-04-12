@@ -209,7 +209,10 @@ class ConstructionsGUI(ft.UserControl):
     def amenity_selected(self, _event):
         self.container_sheet_materials.visible = False
         if self.add_sheet_materials.selected:
+            self.add_sheet_materials.label.color = ft.colors.BLACK
             self.container_sheet_materials.visible = True
+        else:
+            self.add_sheet_materials.label.color = None
         self.update()
 
     def visible_color_format(self):
@@ -241,11 +244,12 @@ class ConstructionsGUI(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             on_change=self.skeleton_func
         )
+
         self.add_sheet_materials = ft.Chip(
             label=ft.Text('Добавить листовые материалы'),
             on_select=self.amenity_selected,
             selected_color=ft.colors.AMBER,
-            bgcolor=ft.colors.GREY_200,
+            check_color=ft.colors.BLACK,
             visible=False,
         )
         self.container_add_sh_m = ft.Row(
