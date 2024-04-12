@@ -1,11 +1,8 @@
-from typing import Optional
-
 import flet as ft
 from data import MAIN_DATA
 from other_func import card, checking_size, checking_quantity, create_general_params
 from sheet_materials.sheet_materials_gui import SheetMaterials
 from banner.banner_gui import Banner
-from icecream import ic
 
 
 class ConstructionsGUI(ft.UserControl):
@@ -16,7 +13,11 @@ class ConstructionsGUI(ft.UserControl):
         self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
         self.data = MAIN_DATA['Конструкции']
         self.skeleton = None
+        self.add_sheet_materials = None
+        self.container_add_sh_m = None
         self.profile_size = None
+        self.color_divider = ft.Divider(visible=False)
+        self.color_format = None
         self.color = None
         self.color_list = None
         self.overlays = None
@@ -63,7 +64,7 @@ class ConstructionsGUI(ft.UserControl):
         self.update()
 
     def visible_skeleton(self):
-        skeleton_data = self.data['Вид каркаса'][self.skeleton.value]
+        skeleton_data = self.data["Вид каркаса"][self.skeleton.value]
         show_profile_size = skeleton_data.get('Размер профиля')
         if show_profile_size:
             self.profile_size.visible = True
@@ -79,11 +80,17 @@ class ConstructionsGUI(ft.UserControl):
                 self.color_list.options = [ft.dropdown.Option(choice) for choice in show_color]
                 self.color_list.value = show_color[0]
                 self.color.visible = False
+                self.color_format.visible = False
+                self.color_divider.visible = False
             else:
                 self.color.visible = True
+                self.color_format.visible = True
+                self.color_divider.visible = True
                 self.color_list.visible = False
         else:
             self.color.visible = False
+            self.color_divider.visible = False
+            self.color_format.visible = False
             self.color_list.visible = False
 
     def visible_sheet_materials(self):
@@ -117,12 +124,24 @@ class ConstructionsGUI(ft.UserControl):
             ]
             self.overlays.value = data_overlays[0]
 
+    def visible_add_sheet_materials(self):
+        key = self.data["Вид каркаса"][self.skeleton.value].get('Добавить листовые материалы')
+        if key:
+            self.container_add_sh_m.visible = True
+            self.add_sheet_materials.visible = True
+        else:
+            self.container_add_sh_m.visible = False
+            self.add_sheet_materials.visible = False
+        self.add_sheet_materials.selected = False
+
     def skeleton_func(self, _event):
         self.visible_skeleton()
+        self.visible_add_sheet_materials()
         self.visible_sheet_materials()
         self.visible_type_banner()
         self.visible_color_constructions()
         self.visible_overlays()
+        self.visible_color_format()
         self.update()
 
     def cladding_material_func(self, _event):
@@ -187,6 +206,28 @@ class ConstructionsGUI(ft.UserControl):
             ]
         )
 
+    def amenity_selected(self, _event):
+        self.container_sheet_materials.visible = False
+        if self.add_sheet_materials.selected:
+            self.container_sheet_materials.visible = True
+        self.update()
+
+    def visible_color_format(self):
+        if self.color_format.value == 'RAL':
+            self.color.icon = ft.icons.COLOR_LENS
+            self.color.helper_text = "Формат RAL"
+            self.color.prefix_text = '#'
+            self.color.input_filter = ft.NumbersOnlyInputFilter()
+        else:
+            self.color.icon = ft.icons.FORMAT_SIZE
+            self.color.helper_text = "Формат текст"
+            self.color.prefix_text = ''
+            self.color.input_filter = ft.TextOnlyInputFilter()
+
+    def change_color_format(self, _event):
+        self.visible_color_format()
+        self.update()
+
     def create_skeleton_fields(self):
         skeleton_choices = list(self.data['Вид каркаса'].keys())
 
@@ -200,15 +241,39 @@ class ConstructionsGUI(ft.UserControl):
             bgcolor=ft.colors.WHITE,
             on_change=self.skeleton_func
         )
+        self.add_sheet_materials = ft.Chip(
+            label=ft.Text('Добавить листовые материалы'),
+            on_select=self.amenity_selected,
+            selected_color=ft.colors.AMBER,
+            bgcolor=ft.colors.GREY_200,
+            visible=False,
+        )
+        self.container_add_sh_m = ft.Row(
+            [self.add_sheet_materials, ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            visible=False
+        )
+
         self.profile_size = ft.Dropdown(
             label="Размер профиля",
             options=[],
             bgcolor=ft.colors.WHITE,
             alignment=ft.alignment.center,
         )
+        self.color_format = ft.Dropdown(
+            label="Задать цвет в формате",
+            value='Текст',
+            options=[ft.dropdown.Option(choice) for choice in ['RAL', 'Текст']],
+            bgcolor=ft.colors.WHITE,
+            alignment=ft.alignment.center,
+            on_change=self.change_color_format
+        )
+
         self.color = ft.TextField(
-            label="Покраска",
-            tooltip="Допустимы значения цвета в формате RAL или словом",
+            label="Цвет покраски",
+            icon=ft.icons.FORMAT_SIZE,
+            helper_text="Формат текст",
+            input_filter=ft.TextOnlyInputFilter()
         )
         self.color_list = ft.Dropdown(
             label="Цвет",
@@ -236,7 +301,10 @@ class ConstructionsGUI(ft.UserControl):
                 "Основа конструкции",
                 [
                     self.skeleton,
+                    self.container_add_sh_m,
                     self.profile_size,
+                    self.color_divider,
+                    self.color_format,
                     self.color,
                     self.color_list,
                     ft.Divider(),
@@ -274,8 +342,10 @@ class ConstructionsGUI(ft.UserControl):
         column_controls.append(self.create_general_fields())
         column_controls.append(self.button_send)
         self.visible_skeleton()
+        self.visible_add_sheet_materials()
         self.visible_type_banner()
         self.visible_overlays()
+        self.visible_color_format()
         self.shm_create_on_change_events()
         self.bnr_create_on_change_events()
         return column_controls
@@ -331,8 +401,12 @@ class ConstructionsGUI(ft.UserControl):
         if self.container_sheet_materials.visible:
             if self.sheet_materials.material.value not in ('ДСП', 'Фанера', 'МДФ', 'ПВХ'):
                 self.color.visible = False
+                self.color_format.visible = False
+                self.color_divider.visible = False
             else:
                 self.color.visible = True
+                self.color_format.visible = True
+                self.color_divider.visible = True
 
     def shm_plastic_material_func(self, _event):
         self.sheet_materials.plastic_material_events()
@@ -374,7 +448,7 @@ class ConstructionsGUI(ft.UserControl):
 
         self.sheet_materials.proces_rolling_film.on_change = self.shm_plastic_func
 
-    def bnr_material_func(self, event):
+    def bnr_material_func(self, _event):
         self.banner.material_events()
         self.update()
 

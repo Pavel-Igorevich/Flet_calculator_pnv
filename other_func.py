@@ -41,7 +41,6 @@ def card(name_card, content_fields):
     )
     fields = [title, ]
     for field in content_fields:
-        # print(field)
         fields.append(field)
     return ft.Card(
         content=ft.Container(
