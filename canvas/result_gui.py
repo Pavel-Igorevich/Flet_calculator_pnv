@@ -1,6 +1,7 @@
 import flet as ft
 
 from other_func import card_result
+from results_other_func import content_sizes, content_comments_and_list_files
 
 
 def content_material(data):
@@ -73,48 +74,6 @@ def content_processing(data):
     return processing_content
 
 
-def content_sizes(data):
-    return [
-        ft.Text(
-            text_align=ft.TextAlign.CENTER,
-            spans=[
-                ft.TextSpan('Количество: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                ft.TextSpan(f"{data['quantity']}\xa0шт.", ft.TextStyle(weight=ft.FontWeight.W_700)),
-            ]
-        ),
-        ft.Divider(),
-        ft.ResponsiveRow(
-            [
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Высота: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['height']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 4}
-                ),
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Ширина: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['width']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 4}
-                ),
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Размер: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['size']}\xa0м²", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 4}
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        ),
-    ]
-
-
 def content_consumables(data):
     consumption = []
 
@@ -184,6 +143,7 @@ def result_content(data):
     list_content.extend(card_result(content_material(data), 'Материал'))
     list_content.extend(card_result(content_processing(data), 'Обработка'))
     list_content.extend(card_result(content_sizes(data), 'Общие параметры'))
+    list_content.extend(card_result(content_comments_and_list_files(data), 'Комментарии и файлы макета'))
     consumables = content_consumables(data)
     if consumables:
         list_content.extend(card_result(consumables, 'Расходные материалы'))

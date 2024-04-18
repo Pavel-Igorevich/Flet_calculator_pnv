@@ -60,7 +60,7 @@ def main_calc(data):
 
     material_consumption = round(square * quantity, 2)
 
-    price_processing, sale_price_processing, process_material, len_processing_sides = processing_calc(
+    price_processing, sale_price_processing, _, len_processing_sides = processing_calc(
         welding_step=data['processing']['welding_step'],
         processing=data['processing']['type'],
         height=height,

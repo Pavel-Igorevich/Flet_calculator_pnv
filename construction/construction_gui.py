@@ -1,6 +1,7 @@
 import flet as ft
 from data import MAIN_DATA
-from other_func import card, checking_size, checking_quantity, create_general_params
+from other_func import (card, checking_size, checking_quantity, create_general_params,
+                        create_comments_and_layout_files_fields)
 from sheet_materials.sheet_materials_gui import SheetMaterials
 from banner.banner_gui import Banner
 
@@ -12,6 +13,7 @@ class ConstructionsGUI(ft.UserControl):
         self.page = page
         self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
         self.data = MAIN_DATA['Конструкции']
+        self.data_skeletons = self.data["Вид каркаса"]
         self.skeleton = None
         self.add_sheet_materials = None
         self.container_add_sh_m = None
@@ -31,6 +33,8 @@ class ConstructionsGUI(ft.UserControl):
         self.depth_cnst = None
         self.quantity = None
         self.exploitation = None
+        self.comment_field_1 = None
+        self.comment_field_2 = None
 
         self.load_file_btn = None
         self.load_file_text = None
@@ -64,7 +68,7 @@ class ConstructionsGUI(ft.UserControl):
         self.update()
 
     def visible_skeleton(self):
-        skeleton_data = self.data["Вид каркаса"][self.skeleton.value]
+        skeleton_data = self.data_skeletons[self.skeleton.value]
         show_profile_size = skeleton_data.get('Размер профиля')
         if show_profile_size:
             self.profile_size.visible = True
@@ -73,7 +77,8 @@ class ConstructionsGUI(ft.UserControl):
         else:
             self.profile_size.visible = False
 
-        show_color = skeleton_data.get('Цвет')
+    def visible_color(self):
+        show_color = self.data_skeletons[self.skeleton.value].get('Цвет')
         if show_color:
             if isinstance(show_color, list):
                 self.color_list.visible = True
@@ -83,15 +88,29 @@ class ConstructionsGUI(ft.UserControl):
                 self.color_format.visible = False
                 self.color_divider.visible = False
             else:
-                self.color.visible = True
-                self.color_format.visible = True
-                self.color_divider.visible = True
-                self.color_list.visible = False
+                if self.skeleton.value == 'Листовые конструкции':
+                    self.visible_color_constructions()
+                else:
+                    self.color.visible = True
+                    self.color_format.visible = True
+                    self.color_divider.visible = True
+                    self.color_list.visible = False
         else:
             self.color.visible = False
             self.color_divider.visible = False
             self.color_format.visible = False
             self.color_list.visible = False
+
+    def visible_color_constructions(self):
+        if self.container_sheet_materials.visible and self.data:
+            if self.sheet_materials.material.value not in ('ДСП', 'Фанера', 'МДФ', 'ПВХ'):
+                self.color.visible = False
+                self.color_format.visible = False
+                self.color_divider.visible = False
+            else:
+                self.color.visible = True
+                self.color_format.visible = True
+                self.color_divider.visible = True
 
     def visible_sheet_materials(self):
         self.container_sheet_materials.visible = False
@@ -139,7 +158,7 @@ class ConstructionsGUI(ft.UserControl):
         self.visible_add_sheet_materials()
         self.visible_sheet_materials()
         self.visible_type_banner()
-        self.visible_color_constructions()
+        self.visible_color()
         self.visible_overlays()
         self.visible_color_format()
         self.update()
@@ -148,63 +167,50 @@ class ConstructionsGUI(ft.UserControl):
         self.container_banner.visible = False
         if self.cladding_material.value == 'Баннер':
             self.container_banner.visible = True
-            self.visible_color_constructions()
         self.update()
 
     def create_general_fields(self):
-        exploitation_choices = list(self.data['Место эксплуатации'].keys())
+        exploitation = list(self.data['Место эксплуатации'].keys())
         self.exploitation = ft.Dropdown(
             label="Место эксплуатации",
             options=[
-                ft.dropdown.Option(choice) for choice in exploitation_choices
+                ft.dropdown.Option(choice) for choice in exploitation
             ],
-            value=exploitation_choices[0],
+            value=exploitation[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
-        self.depth_cnst = ft.Dropdown(
+        self.depth_cnst = ft.TextField(
             label="Глубина",
-            options=[],
-            visible=False,
-            alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
+            suffix_text="мм",
+            input_filter=ft.NumbersOnlyInputFilter()
         )
-        self.width_cnst, self.height_cnst, self.quantity, self.load_file_text, self.load_file_btn = (
+        self.width_cnst, self.height_cnst, self.quantity = (
             create_general_params()
         )
-        self.width_cnst.on_change = self.checking_size,
-        self.height_cnst.on_change = self.checking_size,
-        self.quantity.on_change = self.checking_quantity,
-
-        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(
-                allow_multiple=True
-            )
-        content_files = ft.ResponsiveRow(
-            [
-                self.load_file_text,
-                ft.Container(
-                    content=self.load_file_btn,
-                    alignment=ft.alignment.center,
-                    col={'xs': 12, 'sm': 2},
-                    padding=ft.padding.only(top=5)
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )
-
-        return card(
+        self.depth_cnst.on_change = self.checking_size
+        self.width_cnst.on_change = self.checking_size
+        self.height_cnst.on_change = self.checking_size
+        self.quantity.on_change = self.checking_quantity
+        card_params = card(
             'Общие параметры',
             [
                 self.exploitation,
-                self.depth_cnst,
                 self.width_cnst,
                 self.height_cnst,
-                self.quantity,
-                ft.Divider(),
-                content_files
+                self.depth_cnst,
+                self.quantity
             ]
         )
+
+        card_comments, contents = create_comments_and_layout_files_fields()
+        self.comment_field_1, self.comment_field_2, self.load_file_text, self.load_file_btn = contents
+
+        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(
+            allow_multiple=True
+        )
+
+        return card_params, card_comments
 
     def amenity_selected(self, _event):
         self.container_sheet_materials.visible = False
@@ -219,13 +225,14 @@ class ConstructionsGUI(ft.UserControl):
         if self.color_format.value == 'RAL':
             self.color.icon = ft.icons.COLOR_LENS
             self.color.helper_text = "Формат RAL"
-            self.color.prefix_text = '#'
+            self.color.prefix_text = 'RAL '
             self.color.input_filter = ft.NumbersOnlyInputFilter()
         else:
             self.color.icon = ft.icons.FORMAT_SIZE
             self.color.helper_text = "Формат текст"
             self.color.prefix_text = ''
             self.color.input_filter = ft.TextOnlyInputFilter()
+        self.color.value = ''
 
     def change_color_format(self, _event):
         self.visible_color_format()
@@ -241,8 +248,7 @@ class ConstructionsGUI(ft.UserControl):
             ],
             value=skeleton_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
-            on_change=self.skeleton_func
+            on_change=self.skeleton_func,
         )
 
         self.add_sheet_materials = ft.Chip(
@@ -251,6 +257,8 @@ class ConstructionsGUI(ft.UserControl):
             selected_color=ft.colors.AMBER,
             check_color=ft.colors.BLACK,
             visible=False,
+            surface_tint_color=ft.colors.BLACK
+
         )
         self.container_add_sh_m = ft.Row(
             [self.add_sheet_materials, ],
@@ -261,18 +269,15 @@ class ConstructionsGUI(ft.UserControl):
         self.profile_size = ft.Dropdown(
             label="Размер профиля",
             options=[],
-            bgcolor=ft.colors.WHITE,
             alignment=ft.alignment.center,
         )
         self.color_format = ft.Dropdown(
             label="Задать цвет в формате",
             value='Текст',
             options=[ft.dropdown.Option(choice) for choice in ['RAL', 'Текст']],
-            bgcolor=ft.colors.WHITE,
             alignment=ft.alignment.center,
             on_change=self.change_color_format
         )
-
         self.color = ft.TextField(
             label="Цвет покраски",
             icon=ft.icons.FORMAT_SIZE,
@@ -282,7 +287,6 @@ class ConstructionsGUI(ft.UserControl):
         self.color_list = ft.Dropdown(
             label="Цвет",
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         self.cladding_material = ft.Dropdown(
             label="Материал обшивки",
@@ -291,14 +295,12 @@ class ConstructionsGUI(ft.UserControl):
             ],
             value="Без обшивки",
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             on_change=self.cladding_material_func
         )
         self.overlays = ft.Dropdown(
             label="ПВХ накладки на торцы",
             options=[],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             visible=False
         )
         return card(
@@ -343,9 +345,10 @@ class ConstructionsGUI(ft.UserControl):
         column_controls.append(self.create_skeleton_fields())
         column_controls.append(self.container_sheet_materials)
         column_controls.append(self.container_banner)
-        column_controls.append(self.create_general_fields())
+        column_controls.extend(self.create_general_fields())
         column_controls.append(self.button_send)
         self.visible_skeleton()
+        self.visible_color()
         self.visible_add_sheet_materials()
         self.visible_type_banner()
         self.visible_overlays()
@@ -400,17 +403,6 @@ class ConstructionsGUI(ft.UserControl):
     def shm_checking_cable_func(self, _event):
         self.sheet_materials.checking_cable()
         self.update()
-
-    def visible_color_constructions(self):
-        if self.container_sheet_materials.visible:
-            if self.sheet_materials.material.value not in ('ДСП', 'Фанера', 'МДФ', 'ПВХ'):
-                self.color.visible = False
-                self.color_format.visible = False
-                self.color_divider.visible = False
-            else:
-                self.color.visible = True
-                self.color_format.visible = True
-                self.color_divider.visible = True
 
     def shm_plastic_material_func(self, _event):
         self.sheet_materials.plastic_material_events()

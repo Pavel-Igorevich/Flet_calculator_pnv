@@ -1,7 +1,8 @@
 import flet as ft
 
 from data import MAIN_DATA
-from other_func import card, checking_size, checking_quantity, load_files
+from other_func import card, checking_size, checking_quantity, load_files, create_general_params, \
+    create_comments_and_layout_files_fields
 
 
 class PressWallGUI(ft.UserControl):
@@ -10,6 +11,7 @@ class PressWallGUI(ft.UserControl):
         super().__init__()
         self.page = page
         self.main_price, self.main_sale_price, self.coefficient = main_price, main_sale_price, coefficient
+        self.data = MAIN_DATA['Пресс-Волл']
         self.skeleton = None
         self.overhead_elements = None
         self.second_side = None
@@ -26,6 +28,7 @@ class PressWallGUI(ft.UserControl):
         self.page.overlay.append(self.pick_files_dialog)
         self.page.update()
         self.upload_files = []
+        self.comment_field_1, self.comment_field_2 = None, None
 
         self.button_send = None
 
@@ -42,7 +45,7 @@ class PressWallGUI(ft.UserControl):
         self.update()
 
     def visible_material(self):
-        skeleton_data = MAIN_DATA['Пресс-Волл']['Вид каркаса']
+        skeleton_data = self.data['Вид каркаса']
         if self.skeleton.value in skeleton_data:
             overhead_data = skeleton_data[self.skeleton.value]["Накладные элементы"]
             if overhead_data:
@@ -68,8 +71,51 @@ class PressWallGUI(ft.UserControl):
         self.visible_material()
         self.update()
 
+    def create_general_fields(self):
+        exploitation_choices = list(self.data['Место эксплуатации'].keys())
+        self.exploitation = ft.Dropdown(
+            label="Место эксплуатации",
+            options=[
+                ft.dropdown.Option(choice) for choice in exploitation_choices
+            ],
+            value=exploitation_choices[0],
+            alignment=ft.alignment.center,
+        )
+
+        self.depth_p_w = ft.TextField(
+            label="Глубина",
+            suffix_text="мм",
+            input_filter=ft.NumbersOnlyInputFilter()
+        )
+        self.width_p_w, self.height_p_w, self.quantity = (
+            create_general_params()
+        )
+        self.depth_p_w.on_change = self.checking_size
+        self.width_p_w.on_change = self.checking_size
+        self.height_p_w.on_change = self.checking_size
+        self.quantity.on_change = self.checking_quantity
+        card_params = card(
+            'Общие параметры',
+            [
+                self.exploitation,
+                self.width_p_w,
+                self.height_p_w,
+                self.depth_p_w,
+                self.quantity
+            ]
+        )
+
+        card_comments, contents = create_comments_and_layout_files_fields()
+        self.comment_field_1, self.comment_field_2, self.load_file_text, self.load_file_btn = contents
+
+        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(
+            allow_multiple=True
+        )
+
+        return card_params, card_comments
+
     def create_fields(self):
-        skeleton_choices = list(MAIN_DATA['Пресс-Волл']['Вид каркаса'].keys())
+        skeleton_choices = list(self.data['Вид каркаса'].keys())
 
         self.skeleton = ft.Dropdown(
             label="Каркас",
@@ -78,7 +124,6 @@ class PressWallGUI(ft.UserControl):
             ],
             value=skeleton_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             on_change=self.material_func
         )
 
@@ -86,11 +131,10 @@ class PressWallGUI(ft.UserControl):
             label="Накладные элементы",
             options=[],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             visible=False
         )
 
-        side_choices = MAIN_DATA['Пресс-Волл']['Вторая сторона']
+        side_choices = self.data['Вторая сторона']
         self.second_side = ft.Dropdown(
             label="Вторая сторона",
             options=[
@@ -98,10 +142,9 @@ class PressWallGUI(ft.UserControl):
             ],
             value=side_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
-        print_choices = MAIN_DATA['Пресс-Волл']['Качество печати']
+        print_choices = self.data['Качество печати']
         self.print_quality = ft.Dropdown(
             label="Качество печати",
             options=[
@@ -109,7 +152,6 @@ class PressWallGUI(ft.UserControl):
             ],
             value=print_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
         column_controls = [
@@ -128,81 +170,7 @@ class PressWallGUI(ft.UserControl):
                 ]
             ),
         ]
-
-        exploitation_choices = list(MAIN_DATA['Пресс-Волл']['Место эксплуатации'].keys())
-        self.exploitation = ft.Dropdown(
-            label="Место эксплуатации",
-            options=[
-                ft.dropdown.Option(choice) for choice in exploitation_choices
-            ],
-            value=exploitation_choices[0],
-            alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
-        )
-
-        self.depth_p_w = ft.Dropdown(
-            label="Глубина",
-            options=[],
-            visible=False,
-            alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
-        )
-        self.width_p_w = ft.TextField(
-            label="Ширина",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.height_p_w = ft.TextField(
-            label="Высота",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.quantity = ft.TextField(
-            label="Количество",
-            suffix_text="шт.",
-            on_change=self.checking_quantity,
-        )
-        self.load_file_text = ft.TextField(
-            label="Файлы макета",
-            read_only=True,
-            col={'xs': 12, 'sm': 10}
-        )
-        self.load_file_btn = ft.IconButton(
-            icon=ft.icons.UPLOAD_FILE,
-            style=ft.ButtonStyle(
-                bgcolor=ft.colors.AMBER, color=ft.colors.BLACK, padding=10
-            ),
-            on_click=lambda _: self.pick_files_dialog.pick_files(
-                allow_multiple=True
-            ),
-        )
-        content_files = ft.ResponsiveRow(
-            [
-                self.load_file_text,
-                ft.Container(
-                    content=self.load_file_btn,
-                    alignment=ft.alignment.center,
-                    col={'xs': 12, 'sm': 2},
-                    padding=ft.padding.only(top=5)
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )
-
-        column_controls.append(
-            card(
-                'Общие параметры',
-                [
-                    self.exploitation,
-                    self.depth_p_w,
-                    self.width_p_w,
-                    self.height_p_w,
-                    self.quantity,
-                    ft.Divider(),
-                    content_files
-                ]
-            )
-        )
+        column_controls.extend(self.create_general_fields())
 
         # todo не доделана
         self.button_send = ft.ElevatedButton(

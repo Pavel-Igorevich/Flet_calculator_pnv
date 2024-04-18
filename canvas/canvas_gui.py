@@ -6,7 +6,8 @@ from calculations.canvas_calc import main_calc
 from canvas.result_gui import result_content
 from data import MAIN_DATA
 from list_orders import ORDERS
-from other_func import card, checking_size, checking_quantity, load_files
+from other_func import card, checking_size, checking_quantity, load_files, create_general_params, \
+    create_comments_and_layout_files_fields
 
 
 class CanvasGUI(ft.UserControl):
@@ -28,6 +29,7 @@ class CanvasGUI(ft.UserControl):
         self.page.overlay.append(self.pick_files_dialog)
         self.page.update()
         self.upload_files = []
+        self.comment_field_1, self.comment_field_2 = None, None
 
         self.button_send = None
 
@@ -43,6 +45,31 @@ class CanvasGUI(ft.UserControl):
         self.load_file_text.value, self.upload_files = load_files(e, "Макет_Холста")
         self.update()
 
+    def create_fields_general_params(self):
+        self.width_canvas, self.height_canvas, self.quantity = (
+            create_general_params()
+        )
+        self.width_canvas.on_change = self.checking_size
+        self.height_canvas.on_change = self.checking_size
+        self.quantity.on_change = self.checking_quantity
+
+        card_params = card(
+            'Общие параметры',
+            [
+                self.width_canvas,
+                self.height_canvas,
+                self.quantity,
+                self.quantity
+            ]
+        )
+        card_comments, contents = create_comments_and_layout_files_fields()
+
+        self.comment_field_1, self.comment_field_2, self.load_file_text, self.load_file_btn = contents
+        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(
+            allow_multiple=True
+        )
+        return card_params, card_comments
+
     def create_fields(self):
         material_choices = list(self.DATA['Материал'].keys())
 
@@ -53,7 +80,6 @@ class CanvasGUI(ft.UserControl):
             ],
             value=material_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
         processing_choices = list(self.DATA['Обработка'].keys())
@@ -65,7 +91,6 @@ class CanvasGUI(ft.UserControl):
             ],
             value=processing_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         column_controls = [
             ft.Row(
@@ -76,55 +101,7 @@ class CanvasGUI(ft.UserControl):
             card("Материал", [self.material, ]),
             card("Обработка", [self.processing, ])
         ]
-        self.width_canvas = ft.TextField(
-            label="Ширина",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.height_canvas = ft.TextField(
-            label="Высота",
-            suffix_text="мм",
-            on_change=self.checking_size,
-        )
-        self.quantity = ft.TextField(
-            label="Количество",
-            suffix_text="шт.",
-            on_change=self.checking_quantity,
-        )
-        self.load_file_text = ft.TextField(
-            label="Файлы макета",
-            read_only=True,
-            col={'xs': 12, 'sm': 10}
-        )
-        self.load_file_btn = ft.IconButton(
-            icon=ft.icons.UPLOAD_FILE,
-            style=ft.ButtonStyle(
-                bgcolor=ft.colors.AMBER, color=ft.colors.BLACK, padding=10
-            ),
-            on_click=lambda _: self.pick_files_dialog.pick_files(
-                allow_multiple=True
-            ),
-        )
-        content_files = ft.ResponsiveRow(
-            [
-                self.load_file_text,
-                ft.Container(
-                    content=self.load_file_btn,
-                    alignment=ft.alignment.center,
-                    col={'xs': 12, 'sm': 2},
-                    padding=ft.padding.only(top=5)
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )
-
-        column_controls.append(
-            card(
-                'Общие параметры',
-                [self.width_canvas, self.height_canvas, self.quantity, ft.Divider(), content_files]
-            )
-        )
-
+        column_controls.extend(self.create_fields_general_params())
         self.button_send = ft.ElevatedButton(
             'Рассчитать',
             style=ft.ButtonStyle(
@@ -161,6 +138,7 @@ class CanvasGUI(ft.UserControl):
             ORDERS[f'Холст - {datetime.now().strftime("%d.%m.%Y (%H:%M:%S)")}'] = data
             data['result_content'] = 'canvas'
             self.page.dialog.open = True
+            self.page.banner.open = False
             self.page.update()
         self.update()
 
@@ -175,8 +153,20 @@ class CanvasGUI(ft.UserControl):
             'height': self.height_canvas.value,
             'width': self.width_canvas.value,
             'quantity': self.quantity.value,
-            'files': self.upload_files
         }
+        if self.upload_files:
+            data['upload_files'] = ", ".join(self.upload_files)
+        else:
+            data['upload_files'] = 'Файлы не добавлены'
+
+        list_comments = []
+        for comment in [self.comment_field_1, self.comment_field_2]:
+            if self.comment_field_1.value:
+                comment = comment.value
+            else:
+                comment = "Нет"
+            list_comments.append(comment)
+        data['comments'] = list_comments
         return data
 
     def build(self):

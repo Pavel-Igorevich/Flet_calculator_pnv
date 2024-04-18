@@ -50,7 +50,7 @@ def card(name_card, content_fields):
             ),
             padding=10,
         ),
-        surface_tint_color=ft.colors.BLACK
+        shadow_color=ft.colors.BLACK,
     )
 
 
@@ -100,24 +100,50 @@ def create_general_params():
     width = ft.TextField(
         label="Ширина",
         suffix_text="мм",
+        input_filter=ft.NumbersOnlyInputFilter()
     )
     height = ft.TextField(
         label="Высота",
         suffix_text="мм",
+        input_filter=ft.NumbersOnlyInputFilter()
     )
     quantity = ft.TextField(
         label="Количество",
         suffix_text="шт.",
+        input_filter=ft.NumbersOnlyInputFilter()
     )
+    return width, height, quantity
+
+
+def create_comments_and_layout_files_fields():
+    comment_field_1 = ft.TextField(label="Место комментариев для верстки", multiline=True, max_lines=5)
+    comment_field_2 = ft.TextField(label="Место комментариев для производства", multiline=True, max_lines=5)
     load_file_text = ft.TextField(
         label="Файлы макета",
         read_only=True,
         col={'xs': 12, 'sm': 10}
     )
     load_file_btn = ft.IconButton(
+
         icon=ft.icons.UPLOAD_FILE,
         style=ft.ButtonStyle(
             bgcolor=ft.colors.AMBER, color=ft.colors.BLACK, padding=10
         )
     )
-    return width, height, quantity, load_file_text, load_file_btn
+    content_files = ft.ResponsiveRow(
+        [
+            load_file_text,
+            ft.Container(
+                content=load_file_btn,
+                alignment=ft.alignment.center,
+                col={'xs': 12, 'sm': 2},
+                padding=ft.padding.only(top=5)
+            )
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+    )
+    contents = [comment_field_1, comment_field_2, load_file_text, load_file_btn]
+    return card(
+        'Комментарии и файлы макета',
+        [comment_field_1, comment_field_2, ft.Divider(), content_files]
+    ), contents

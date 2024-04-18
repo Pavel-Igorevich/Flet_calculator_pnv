@@ -5,7 +5,8 @@ from banner.result_gui import result_content
 from calculations.banner_calc import main_calc
 from data import MAIN_DATA
 from list_orders import ORDERS
-from other_func import card, checking_size, checking_quantity, load_files, create_general_params
+from other_func import card, checking_size, checking_quantity, load_files, create_general_params, \
+    create_comments_and_layout_files_fields
 
 
 class Banner:
@@ -102,7 +103,6 @@ class Banner:
             ],
             value=material_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         self.print_quality = ft.Dropdown(
             label="Качество печати",
@@ -111,7 +111,6 @@ class Banner:
             ],
             value=print_quality_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         return card('Материал', [self.material, self.print_quality])
 
@@ -161,13 +160,11 @@ class Banner:
             ],
             value=processing_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         self.welding_step = ft.Dropdown(
             label="Шаг сварки",
             options=[],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             visible=False
         )
         self.text_side = ft.Row([ft.Text('Выбор стороны обработки')], alignment=ft.MainAxisAlignment.CENTER)
@@ -202,7 +199,7 @@ class Banner:
             self.create_fields_processing()
         ]
         if fields_general_params:
-            column_controls.append(fields_general_params)
+            column_controls.extend(fields_general_params)
         if btn_send:
             self.button_send = ft.ElevatedButton(
                 'Рассчитать',
@@ -231,6 +228,8 @@ class BannerGUI(ft.UserControl, Banner):
         self.page.update()
         self.upload_files = []
 
+        self.comment_field_1, self.comment_field_2 = None, None
+
         self.load_file_btn = None
         self.load_file_text = None
 
@@ -247,36 +246,31 @@ class BannerGUI(ft.UserControl, Banner):
         self.update()
 
     def create_fields_general_params(self):
-        self.width_banner, self.height_banner, self.quantity, self.load_file_text, self.load_file_btn = (
+        self.width_banner, self.height_banner, self.quantity = (
             create_general_params()
         )
         self.width_banner.on_change = self.checking_size
         self.height_banner.on_change = self.checking_size
         self.quantity.on_change = self.checking_quantity
+        card_params = card(
+            'Общие параметры',
+            [
+                self.width_banner,
+                self.height_banner,
+                self.quantity,
+                self.quantity
+            ]
+        )
+        card_comments, contents = create_comments_and_layout_files_fields()
+
+        self.comment_field_1, self.comment_field_2, self.load_file_text, self.load_file_btn = contents
         self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(
             allow_multiple=True
         )
+        return card_params, card_comments
 
-        content_files = ft.ResponsiveRow(
-            [
-                self.load_file_text,
-                ft.Container(
-                    content=self.load_file_btn,
-                    alignment=ft.alignment.center,
-                    col={'xs': 12, 'sm': 2},
-                    padding=ft.padding.only(top=5)
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER
-
-        )
-        return card(
-            'Общие параметры',
-            [self.width_banner, self.height_banner, self.quantity, ft.Divider(), content_files]
-        )
-
-    def material_func(self, event):
-        self.material_events(event)
+    def material_func(self, _event):
+        self.material_events()
         self.update()
 
     def processing_func(self, _event):
@@ -306,8 +300,21 @@ class BannerGUI(ft.UserControl, Banner):
             'height': self.height_banner.value,
             'width': self.width_banner.value,
             'quantity': self.quantity.value,
-            'files': self.upload_files
         }
+        if self.upload_files:
+            data['upload_files'] = ", ".join(self.upload_files)
+        else:
+            data['upload_files'] = 'Файлы не добавлены'
+
+        list_comments = []
+        for comment in [self.comment_field_1, self.comment_field_2]:
+            if self.comment_field_1.value:
+                comment = comment.value
+            else:
+                comment = "Нет"
+            list_comments.append(comment)
+        data['comments'] = list_comments
+
         if self.data_processing[self.processing.value].get('Сторона'):
             processing_sides = [name_side for name_side, data in self.side_data.items() if data['obj'].selected]
             data['processing']['sides'] = ', '.join(processing_sides)
@@ -354,6 +361,7 @@ class BannerGUI(ft.UserControl, Banner):
             ORDERS[f'Баннер - {datetime.now().strftime("%d.%m.%Y (%H:%M:%S)")}'] = data
             data['result_content'] = 'banner'
             self.page.dialog.open = True
+            self.page.banner.open = False
             self.page.update()
         self.update()
 

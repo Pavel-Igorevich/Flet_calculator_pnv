@@ -6,7 +6,8 @@ from calculations.plastic_calc import main_calc as plastic_calc
 from calculations.sheet_materials_calc import main_calc
 from data import MAIN_DATA
 from list_orders import ORDERS
-from other_func import card, checking_size, checking_quantity, load_files, create_general_params
+from other_func import card, checking_size, checking_quantity, load_files, create_general_params, \
+    create_comments_and_layout_files_fields
 from plastic.plastic_gui import PlasticElements
 from sheet_materials.result_gui import result_content
 
@@ -16,6 +17,10 @@ class SheetMaterials:
     data = MAIN_DATA['Листовые материалы']
 
     def __init__(self):
+        self.data_material = SheetMaterials.data['Материал']
+        self.data_backlighting = SheetMaterials.data['Световое исполнение']
+        self.data_processing = SheetMaterials.data['Обработка']
+
         self.material = None
         self.material_type = None
         self.material_thickness = None
@@ -27,13 +32,11 @@ class SheetMaterials:
         self.backlighting = None
         self.backlighting_color = None
         self.backlighting_lightbox_thickness = None
+        self.backlighting_neon_thickness = None
         self.backlighting_type_light = None
+        self.default_type_light = list(self.data_backlighting['Вид света'].keys())
         self.backlighting_cable = None
         self.button_send = None
-
-        self.data_material = SheetMaterials.data['Материал']
-        self.data_backlighting = SheetMaterials.data['Световое исполнение']
-        self.data_processing = SheetMaterials.data['Обработка']
 
         self.plastic_class = PlasticElements()
         self.side_film_app = None
@@ -149,10 +152,15 @@ class SheetMaterials:
                 'type': self.backlighting.value,
                 'color': self.backlighting_color.value,
                 'type_light': self.backlighting_type_light.value,
-                'lightbox_thickness': self.backlighting_lightbox_thickness.value,
                 'cable': self.backlighting_cable.value
             },
         }
+        match self.backlighting.value:
+            case 'Лайтбокс':
+                data['backlighting']['thickness'] = int(self.backlighting_lightbox_thickness.value)
+            case 'Гибкий неон':
+                value = int(self.backlighting_neon_thickness.value.split(' ')[0])
+                data['backlighting']['thickness'] = value
         if general_params_data:
             data.update(general_params_data)
         return data
@@ -183,39 +191,45 @@ class SheetMaterials:
             return False
         return True
 
+    def checking_backlighting_lightbox_thickness(self):
+        check = True
+        if self.backlighting.value == 'Лайтбокс':
+            thickness_data = self.backlighting_lightbox_thickness
+            if not thickness_data.value:
+                thickness_data.error_text = 'Не может быть пустым'
+                check = False
+            elif not thickness_data.value.isdigit():
+                thickness_data.error_text = 'Количество задается целым числом'
+                check = False
+            else:
+                thickness_data.error_text = ''
+        return check
+
+    def on_off_visible_backlighting(self, on: bool):
+        self.backlighting_neon_thickness.visible = False
+        self.backlighting_lightbox_thickness.visible = False
+        self.backlighting_color.visible = on
+        self.backlighting_type_light.visible = on
+        self.backlighting_cable.visible = on
+        self.backlighting_cable.value = None
+
     def visible_backlighting_param(self):
         if self.backlighting.value != self.not_required:
-            if self.backlighting.value == 'Лайтбокс':
-                self.backlighting_lightbox_thickness.visible = True
-            self.backlighting_color.visible = True
-            self.backlighting_type_light.visible = True
-            self.backlighting_cable.visible = True
+            self.on_off_visible_backlighting(on=True)
 
-            self.backlighting_lightbox_thickness.value = None
-            self.backlighting_cable.value = None
-
-            backlighting_data = self.data_backlighting
-
-            backlighting_color_choices = list(backlighting_data['Цвет света'].keys())
-            self.backlighting_color.options = [
-                ft.dropdown.Option(choice) for choice in backlighting_color_choices
-            ]
-            self.backlighting_color.value = backlighting_color_choices[0]
-
-            backlighting_type_choices = list(backlighting_data['Вид света'].keys())
-            self.backlighting_type_light.options = [
-                ft.dropdown.Option(choice) for choice in backlighting_type_choices
-            ]
-            self.backlighting_type_light.value = backlighting_type_choices[0]
+            if self.backlighting.value == "Гибкий неон":
+                self.backlighting_neon_thickness.visible = True
+                self.backlighting_type_light.options = [ft.dropdown.Option(self.backlighting.value)]
+                self.backlighting_type_light.value = self.backlighting.value
+            else:
+                if self.backlighting.value == "Лайтбокс":
+                    self.backlighting_lightbox_thickness.visible = True
+                self.backlighting_type_light.options = [
+                    ft.dropdown.Option(choice) for choice in self.default_type_light
+                ]
+                self.backlighting_type_light.value = self.default_type_light[0]
         else:
-            self.backlighting_lightbox_thickness.value = None
-            self.backlighting_color.value = None
-            self.backlighting_type_light.value = None
-            self.backlighting_cable.value = None
-            self.backlighting_lightbox_thickness.visible = False
-            self.backlighting_color.visible = False
-            self.backlighting_type_light.visible = False
-            self.backlighting_cable.visible = False
+            self.on_off_visible_backlighting(on=False)
 
     def backlighting_events(self):
         self.visible_backlighting_param()
@@ -237,7 +251,6 @@ class SheetMaterials:
             ],
             value=default_material,
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
         self.material_type = ft.Dropdown(
@@ -245,7 +258,6 @@ class SheetMaterials:
             options=[],
             value=None,
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             visible=False
         )
 
@@ -254,7 +266,6 @@ class SheetMaterials:
             options=[],
             value=None,
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
         self.material_color = ft.TextField(
@@ -267,7 +278,6 @@ class SheetMaterials:
             options=[],
             value=None,
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             visible=False
         )
 
@@ -285,7 +295,6 @@ class SheetMaterials:
             ],
             value=process_cutting_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
         process_film_choices = list(self.data_processing['Накатка пленки'].keys())
@@ -296,7 +305,6 @@ class SheetMaterials:
             ],
             value=process_film_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         self.side_film_app = ft.Dropdown(
             label="Сторона накатки",
@@ -305,7 +313,6 @@ class SheetMaterials:
             ],
             value='Лицевая',
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
             visible=False
         )
 
@@ -317,7 +324,6 @@ class SheetMaterials:
             ],
             value=proces_holder_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         return card(
             'Обработка',
@@ -339,24 +345,33 @@ class SheetMaterials:
             ],
             value=backlighting_choices[0],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
         self.backlighting_lightbox_thickness = ft.TextField(
             label="Толщина лайтбокса",
             suffix_text="мм",
         )
+        data_backlighting_neon = self.data_backlighting["Вид подсветки"]["Гибкий неон"]["Толщина неона"]
+        self.backlighting_neon_thickness = ft.Dropdown(
+            label="Толщина неона",
+            options=[
+                ft.dropdown.Option(choice)
+                for choice in data_backlighting_neon
+            ],
+            value=data_backlighting_neon[0],
+            alignment=ft.alignment.center
+        )
+        backlighting_color_choices = list(self.data_backlighting['Цвет света'].keys())
         self.backlighting_color = ft.Dropdown(
             label="Цвет света",
-            options=[],
+            options=[ft.dropdown.Option(choice) for choice in backlighting_color_choices],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
+            value=backlighting_color_choices[0]
         )
 
         self.backlighting_type_light = ft.Dropdown(
             label="Вид света",
             options=[],
             alignment=ft.alignment.center,
-            bgcolor=ft.colors.WHITE,
         )
 
         self.backlighting_cable = ft.TextField(
@@ -371,10 +386,12 @@ class SheetMaterials:
             [
                 self.backlighting,
                 self.backlighting_lightbox_thickness,
+                self.backlighting_neon_thickness,
                 self.backlighting_color,
                 self.backlighting_type_light,
                 self.backlighting_cable
-            ])
+            ]
+        )
 
     def plastic_material_events(self):
         self.plastic_class.visible_material_fields()
@@ -444,14 +461,13 @@ class SheetMaterials:
         column_plastic = self.create_fields_plastic()
         column_controls.extend(column_plastic)
         if fields_general_params:
-            column_controls.append(fields_general_params)
+            column_controls.extend(fields_general_params)
         if btn_send:
             self.button_send = ft.ElevatedButton(
                 'Рассчитать',
                 style=ft.ButtonStyle(
                     padding={ft.MaterialState.DEFAULT: 20}, bgcolor=ft.colors.AMBER, color=ft.colors.BLACK
                 ),
-
             )
             column_controls.append(self.button_send)
         self.visible_backlighting_param()
@@ -473,6 +489,7 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
         self.page.update()
         self.upload_files = []
 
+        self.comment_field_1, self.comment_field_2 = None, None
         self.load_file_btn = None
         self.load_file_text = None
 
@@ -557,28 +574,28 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
         self.update()
 
     def create_fields_general_params(self):
-        self.width_sheet, self.height_sheet, self.quantity, self.load_file_text, self.load_file_btn = (
-            create_general_params())
+        self.width_sheet, self.height_sheet, self.quantity = (
+            create_general_params()
+        )
         self.width_sheet.on_change = self.checking_size
         self.height_sheet.on_change = self.checking_size
         self.quantity.on_change = self.checking_quantity
-        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(allow_multiple=True)
-        content_files = ft.ResponsiveRow(
-            [
-                self.load_file_text,
-                ft.Container(
-                    content=self.load_file_btn,
-                    alignment=ft.alignment.center,
-                    col={'xs': 12, 'sm': 2},
-                    padding=ft.padding.only(top=5)
-                )
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        )
-        return card(
+        card_params = card(
             'Общие параметры',
-            [self.width_sheet, self.height_sheet, self.quantity, ft.Divider(), content_files]
+            [
+                self.width_sheet,
+                self.height_sheet,
+                self.quantity,
+                self.quantity
+            ]
         )
+        card_comments, contents = create_comments_and_layout_files_fields()
+
+        self.comment_field_1, self.comment_field_2, self.load_file_text, self.load_file_btn = contents
+        self.load_file_btn.on_click = lambda _: self.pick_files_dialog.pick_files(
+            allow_multiple=True
+        )
+        return card_params, card_comments
 
     def checking_general_parameters(self):
         checked_var = True
@@ -596,31 +613,43 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
             self.checking_plastic_values(),
             self.checking_material_values(),
             self.checking_backlighting_cable_values(),
-            self.checking_general_parameters()
+            self.checking_general_parameters(),
+            self.checking_backlighting_lightbox_thickness()
         ]
         return all(checks)
 
     def checking_entered_values(self, _event):
         checked_var = self.check_all_conditions()
+        first_data = {
+            'height': self.height_sheet.value,
+            'width': self.width_sheet.value,
+            'quantity': self.quantity.value,
+        }
+        if self.upload_files:
+            first_data['upload_files'] = ", ".join(self.upload_files)
+        else:
+            first_data['upload_files'] = 'Файлы не добавлены'
+
+        list_comments = []
+        for comment in [self.comment_field_1, self.comment_field_2]:
+            if self.comment_field_1.value:
+                comment = comment.value
+            else:
+                comment = "Нет"
+            list_comments.append(comment)
+        first_data['comments'] = list_comments
+
         if not checked_var:
             self.page.banner.open = True
             self.page.update()
         else:
             general_data = self.create_data(
-                {
-                    'height': self.height_sheet.value,
-                    'width': self.width_sheet.value,
-                    'quantity': self.quantity.value,
-                }
+                first_data
             )
             if self.plastic_class.name.visible:
                 plastic_data = plastic_calc(
                     self.create_data_plastic(
-                        {
-                            'height': self.height_sheet.value,
-                            'width': self.width_sheet.value,
-                            'quantity': self.quantity.value,
-                        }
+                        first_data
                     )
                 )
                 general_data['plastic'] = plastic_data
@@ -635,6 +664,7 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
             ORDERS[key] = data
             data['result_content'] = 'sheet_materials'
             self.page.dialog.open = True
+            self.page.banner.open = False
             self.page.update()
         self.update()
 

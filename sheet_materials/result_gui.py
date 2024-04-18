@@ -2,6 +2,7 @@ import flet as ft
 
 from other_func import card_result
 from plastic import result_gui as plastic_result
+from results_other_func import content_sizes, content_comments_and_list_files
 
 
 def content_material(data):
@@ -148,48 +149,6 @@ def content_processing(data):
     return content_list
 
 
-def content_sizes(data):
-    return [
-        ft.Text(
-            text_align=ft.TextAlign.CENTER,
-            spans=[
-                ft.TextSpan('Количество: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                ft.TextSpan(f"{data['quantity']}\xa0шт.", ft.TextStyle(weight=ft.FontWeight.W_700)),
-            ]
-        ),
-        ft.Divider(),
-        ft.ResponsiveRow(
-            [
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Высота: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['height']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 4}
-                ),
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Ширина: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['width']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 4}
-                ),
-                ft.Text(
-                    text_align=ft.TextAlign.CENTER,
-                    spans=[
-                        ft.TextSpan('Размер: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
-                        ft.TextSpan(f"{data['size']}\xa0м²", ft.TextStyle(weight=ft.FontWeight.W_700)),
-                    ],
-                    col={'xs': 12, 'sm': 4}
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-        ),
-    ]
-
-
 def content_backlighting(data):
     content_list = [
         ft.Text(
@@ -200,14 +159,14 @@ def content_backlighting(data):
             ]
         ),
     ]
-    if data['backlighting']['lightbox_thickness']:
+    if data['backlighting'].get('thickness'):
         content_list.append(
             ft.Text(
                 text_align=ft.TextAlign.CENTER,
                 spans=[
-                    ft.TextSpan('Толщина лайтбокса: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                    ft.TextSpan('Толщина: ', ft.TextStyle(weight=ft.FontWeight.W_200)),
                     ft.TextSpan(
-                        f"{data['backlighting']['lightbox_thickness']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)
+                        f"{data['backlighting']['thickness']}\xa0мм", ft.TextStyle(weight=ft.FontWeight.W_700)
                     ),
                 ]
             )
@@ -339,6 +298,7 @@ def result_content(data):
         if content_lamin:
             list_content.extend(card_result(content_lamin, 'Ламинация плёнки'))
     list_content.extend(card_result(content_sizes(data), 'Общие параметры'))
+    list_content.extend(card_result(content_comments_and_list_files(data), 'Комментарии и файлы макета'))
     if data.get('plastic'):
         list_content.extend(card_result(card_general_prices(data), 'Сводка стоимостей'))
     return ft.Container(

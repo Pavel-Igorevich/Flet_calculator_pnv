@@ -24,6 +24,9 @@ class MainMenu:
         self.page.update()
 
     def settings(self):
+        self.page.theme = ft.Theme(
+            color_scheme_seed=ft.colors.YELLOW,
+        )
         self.page.banner = ft.Banner(
             leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.RED_500, size=40),
             content=ft.Text(
