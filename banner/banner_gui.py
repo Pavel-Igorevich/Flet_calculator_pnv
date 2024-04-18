@@ -257,7 +257,6 @@ class BannerGUI(ft.UserControl, Banner):
             [
                 self.width_banner,
                 self.height_banner,
-                self.quantity,
                 self.quantity
             ]
         )

@@ -58,7 +58,6 @@ class CanvasGUI(ft.UserControl):
             [
                 self.width_canvas,
                 self.height_canvas,
-                self.quantity,
                 self.quantity
             ]
         )

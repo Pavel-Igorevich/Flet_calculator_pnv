@@ -585,7 +585,6 @@ class SheetMaterialsGUI(ft.UserControl, SheetMaterials):
             [
                 self.width_sheet,
                 self.height_sheet,
-                self.quantity,
                 self.quantity
             ]
         )
