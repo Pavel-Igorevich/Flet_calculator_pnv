@@ -11,12 +11,10 @@ RUN pip install -r requirements.txt
 # Копируем все остальные файлы приложения в текущую директорию образа
 COPY . .
 
-# Копируем файл конфигурации NGINX внутрь контейнера
-COPY nginx.conf /etc/nginx/nginx.conf
-
 # Определяем точку входа и команду по умолчанию
-ENTRYPOINT [ "python" ]
-CMD ["main.py"]
+
+ENTRYPOINT [ "flet" ]
+CMD ["run", "--web", "main.py", "-p", "8000"]
 
 # Expose the port your app runs on
-EXPOSE 80
+EXPOSE 8000

@@ -227,6 +227,3 @@ async def run_app(page: ft.Page):
     menu = MainMenu(page)
     menu.run_main_menu()
 
-
-if __name__ == '__main__':
-    ft.app(run_app, upload_dir="files", assets_dir="assets")
