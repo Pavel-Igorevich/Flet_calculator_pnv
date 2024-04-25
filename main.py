@@ -1,4 +1,5 @@
 import flet as ft
+from icecream import ic
 
 from banner.banner_gui import BannerGUI
 from canvas.canvas_gui import CanvasGUI
@@ -6,6 +7,7 @@ from orders.orders_gui import OrdersGUI
 from plastic.plastic_gui import PlasticGUI
 from construction.construction_gui import ConstructionsGUI
 from sheet_materials.sheet_materials_gui import SheetMaterialsGUI
+from theme import main as get_theme
 
 
 class MainMenu:
@@ -24,8 +26,12 @@ class MainMenu:
         self.page.update()
 
     def settings(self):
+        light_theme, dark_theme = get_theme()
         self.page.theme = ft.Theme(
-            color_scheme_seed=ft.colors.YELLOW,
+            color_scheme=light_theme,
+        )
+        self.page.dark_theme = ft.Theme(
+            color_scheme=dark_theme,
         )
         self.page.banner = ft.Banner(
             leading=ft.Icon(ft.icons.WARNING_AMBER_ROUNDED, color=ft.colors.RED_500, size=40),
@@ -114,7 +120,7 @@ class MainMenu:
         self.page.drawer.open = True
         self.page.drawer.update()
 
-    def test(self, _event):
+    def drawer_control(self, _event):
         index = self.page.drawer.selected_index
         self.page.remove(self.enable_user_control)
         if index == 0:
@@ -202,7 +208,7 @@ class MainMenu:
                     label="Конструкции",
                 ),
             ],
-            on_change=self.test,
+            on_change=self.drawer_control,
         )
 
         self.page.appbar = ft.AppBar(
@@ -219,11 +225,10 @@ class MainMenu:
         self.page.add()
 
 
-def run_app(page: ft.Page):
+async def run_app(page: ft.Page):
     menu = MainMenu(page)
     menu.run_main_menu()
 
 
 if __name__ == '__main__':
-    # ft.app(run_app, view=ft.AppView.WEB_BROWSER, port=8080)
-    ft.app(run_app, upload_dir="files")
+    ft.app(run_app, upload_dir="files", assets_dir="assets")

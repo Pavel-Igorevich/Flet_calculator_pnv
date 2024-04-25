@@ -37,7 +37,6 @@ def processing_calc(welding_step, processing, height, width, sides):
                     len_processing_sides += perimeter
                 else:
                     len_processing_sides += float(width) / 1000
-        len_processing_sides = len_processing_sides
         price_processing = round(price_processing * len_processing_sides, 2)
         sale_price_processing = round(sale_price_processing * len_processing_sides, 2)
     else:

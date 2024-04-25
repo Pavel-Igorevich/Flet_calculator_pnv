@@ -381,3 +381,4 @@ class BannerGUI(ft.UserControl, Banner):
             margin=10,
             width=500
         )
+

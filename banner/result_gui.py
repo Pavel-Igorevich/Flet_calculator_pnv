@@ -4,13 +4,13 @@ from other_func import card_result
 from results_other_func import content_sizes, content_comments_and_list_files
 
 
-def price_element(price, sale_price):
+def price_element(price, sale_price, label="м²"):
     return ft.ResponsiveRow(
         [
             ft.Text(
                 text_align=ft.TextAlign.CENTER,
                 spans=[
-                    ft.TextSpan('Себестоимость\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                    ft.TextSpan(f'Себестоимость\xa0({label}): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
                     # ft.TextSpan(f"{data['material']['price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
                     ft.TextSpan(f"{price}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
                 ],
@@ -19,7 +19,7 @@ def price_element(price, sale_price):
             ft.Text(
                 text_align=ft.TextAlign.CENTER,
                 spans=[
-                    ft.TextSpan('Стоимость продажи\xa0(м²): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
+                    ft.TextSpan(f'Стоимость продажи\xa0({label}): ', ft.TextStyle(weight=ft.FontWeight.W_200)),
                     # ft.TextSpan(f"{data['material']['sale_price']}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
                     ft.TextSpan(f"{sale_price}\xa0₽", ft.TextStyle(weight=ft.FontWeight.W_700)),
                 ],
@@ -83,7 +83,7 @@ def content_processing(data):
         )
     processing_content.append(ft.Divider())
     processing_content.append(
-        price_element(data['processing']['price'], data['processing']['sale_price'])
+        price_element(data['processing']['price'], data['processing']['sale_price'], "шт.")
     ),
     return processing_content
 

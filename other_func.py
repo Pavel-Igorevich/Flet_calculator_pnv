@@ -50,7 +50,7 @@ def card(name_card, content_fields):
             ),
             padding=10,
         ),
-        shadow_color=ft.colors.BLACK,
+        # shadow_color=ft.colors.BLACK,
     )
 
 

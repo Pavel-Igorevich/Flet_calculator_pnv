@@ -257,7 +257,7 @@ class ConstructionsGUI(ft.UserControl):
             selected_color=ft.colors.AMBER,
             check_color=ft.colors.BLACK,
             visible=False,
-            surface_tint_color=ft.colors.BLACK
+            surface_tint_color=ft.colors.BLACK,
 
         )
         self.container_add_sh_m = ft.Row(
