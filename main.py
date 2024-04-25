@@ -1,6 +1,4 @@
 import flet as ft
-from icecream import ic
-
 from banner.banner_gui import BannerGUI
 from canvas.canvas_gui import CanvasGUI
 from orders.orders_gui import OrdersGUI
